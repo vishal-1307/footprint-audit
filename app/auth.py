@@ -118,6 +118,9 @@ def clear_login_failures(ip: str) -> None:
 def is_public_path(path: str) -> bool:
     if path in PUBLIC_PATHS:
         return True
+    # Login and other public pages need the shared stylesheet.
+    if path == "/static" or path.startswith("/static/"):
+        return True
     return False
 
 

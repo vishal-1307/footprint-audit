@@ -1,4 +1,4 @@
-"""Subprocess adapters and output parsers for the Kali OSINT tools used in the MVP.
+"""Subprocess adapters and output parsers for the OSINT tools used in the MVP.
 
 Flags follow the project research notes (Nov 2026):
 
@@ -86,8 +86,7 @@ TOOL_TIMEOUTS = {
 }
 
 # kind: binary = PATH tool; python = always-on library/API; whois = CLI or python-whois.
-# optional binaries stay in the UI as unavailable when not installed (cloud image
-# does not ship dnsrecon/subfinder/theHarvester).
+# dnsrecon, subfinder, and theHarvester are installed in the Docker image.
 TOOL_SPEC = {
     "sherlock": {"binaries": ["sherlock"], "group": "username", "timeout": 180, "kind": "binary"},
     "maigret": {"binaries": ["maigret"], "group": "username", "timeout": 180, "kind": "binary"},
@@ -112,7 +111,7 @@ TOOL_SPEC = {
     },
 }
 
-HEAVY_TOOLS = {"maigret", "sherlock"}
+HEAVY_TOOLS = {"maigret", "sherlock", "dnsrecon", "subfinder", "theharvester"}
 
 
 def maigret_top_sites() -> int:
@@ -229,6 +228,7 @@ def detect_tools() -> dict[str, dict[str, Any]]:
                 if path and not os.environ.get(env_name, "").strip():
                     reason = f"{env_name} is not set — skipped; use the Have I Been Pwned link"
                     available = False
+        hidden = name == "h8mail" and not os.environ.get("HIBP_API_KEY", "").strip()
         detected[name] = {
             "available": available,
             "path": path,
@@ -237,6 +237,7 @@ def detect_tools() -> dict[str, dict[str, Any]]:
             "reason": reason,
             "backend": backend,
             "kind": kind,
+            "hidden": hidden,
         }
     return detected
 
@@ -1302,7 +1303,9 @@ async def run_subfinder(domain: str, timeout: int | None = None, binary: str = "
     timeout = timeout or TOOL_TIMEOUTS["subfinder"]
     with tempfile.TemporaryDirectory(prefix="subfinder-") as tmp:
         out_jsonl = Path(tmp) / "out.jsonl"
-        argv = [binary, "-d", domain, "-silent", "-oJ", "-o", str(out_jsonl)]
+        # -oJ is JSONL (not the site-list --json). -duc skips the update check
+        # so a read-only container does not try to write a config on start.
+        argv = [binary, "-d", domain, "-silent", "-oJ", "-o", str(out_jsonl), "-duc"]
         try:
             code, out, err = await run_cmd(argv, timeout=timeout, cwd=tmp)
         except asyncio.TimeoutError:

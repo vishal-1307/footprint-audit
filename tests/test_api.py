@@ -32,7 +32,12 @@ def test_health_and_tools(client: TestClient):
     assert body["ok"] is True
     assert "sherlock" in body["tools"]
     assert body["gemini_configured"] is False
+    assert body["gemini"]["configured"] is False
     assert body["fake_tools"] is True
+    assert "remaining" in body["rate_limit"]
+    # h8mail stays in the payload but is hidden from the dashboard unless a HIBP key is set.
+    assert body["tools"]["h8mail"]["hidden"] is True
+    assert body["hibp_configured"] is False
 
 
 def test_scan_requires_consent(client: TestClient):
@@ -150,3 +155,17 @@ def test_pages_served(client: TestClient):
     assert client.get("/").status_code == 200
     assert client.get("/audit").status_code == 200
     assert "consent" in client.get("/").text.lower()
+
+
+def test_pages_drop_localhost_wording(client: TestClient):
+    home = client.get("/").text.lower()
+    login = client.get("/login").text.lower()
+    audit = client.get("/audit").text.lower()
+    for page in (home, login, audit):
+        assert "127.0.0.1" not in page
+        assert "localhost only" not in page
+        assert "kali" not in page
+    assert "consent" in home
+    assert "more options" in home
+    assert "/static/styles.css" in home
+    assert "/static/styles.css" in login

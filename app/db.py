@@ -2,7 +2,7 @@
 
 The audit log stores input *types* and tools run, never passwords or other
 secrets. Job rows keep the identifiers the student typed so the on-screen
-report and PDF can be regenerated; those rows live only on localhost.
+report and PDF can be regenerated; those rows live only on this instance (ephemeral on Render's free tier).
 """
 
 from __future__ import annotations

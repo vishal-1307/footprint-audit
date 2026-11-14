@@ -67,3 +67,9 @@ def test_login_logout_roundtrip(raw_client: TestClient):
     assert out.status_code in {302, 303}
     blocked = raw_client.get("/api/health")
     assert blocked.status_code == 401
+
+
+def test_static_css_is_public(raw_client: TestClient):
+    res = raw_client.get("/static/styles.css")
+    assert res.status_code == 200
+    assert "font-family" in res.text

@@ -272,7 +272,7 @@ def build_pdf(job: dict[str, Any]) -> bytes:
         "The Information Technology Act, 2000, sections 43 and 66 cover unauthorized "
         "access and bypassing controls; section 66C covers identity misuse. This app "
         "does not log in to third-party accounts, does not ingest breach dumps, and "
-        "is bound to localhost. Platform terms of service may still prohibit some "
+        "is intended only for consented self-audits of identifiers you own. Platform terms of service may still prohibit some "
         "automated checks. When in doubt, search only your own identifiers."
     )
 

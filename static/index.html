@@ -1,227 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Digital Footprint Self-Audit</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0b1016;
-      --bg-elev: #131b24;
-      --bg-elev-2: #1a2430;
-      --line: #2a3848;
-      --text: #e6edf3;
-      --muted: #8b9aab;
-      --mint: #3ee0b4;
-      --mint-dim: rgba(62, 224, 180, 0.14);
-      --amber: #f0b429;
-      --coral: #ff6b5a;
-      --blue: #7ab4ff;
-      --danger: #ff6b5a;
-      --radius: 14px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
-    body {
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      font-size: 16px;
-      line-height: 1.55;
-      min-height: 100vh;
-    }
-    a { color: var(--mint); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    header.appbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 28px;
-      border-bottom: 1px solid var(--line);
-      position: sticky;
-      top: 0;
-      background: rgba(11, 16, 22, 0.92);
-      backdrop-filter: blur(10px);
-      z-index: 20;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .mark {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--mint-dim); border: 1px solid rgba(62,224,180,.35);
-      display: grid; place-items: center; color: var(--mint); font-weight: 700;
-      font-family: "IBM Plex Mono", monospace; font-size: 14px;
-    }
-    .brand h1 { font-size: 16px; margin: 0; letter-spacing: 0.01em; }
-    .brand p { margin: 0; color: var(--muted); font-size: 12px; }
-    .appbar nav { display: flex; gap: 16px; align-items: center; font-size: 13px; }
-    .pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      border: 1px solid var(--line); border-radius: 999px;
-      padding: 4px 10px; color: var(--muted); font-size: 12px;
-      font-family: "IBM Plex Mono", monospace;
-    }
-    .pill.ok { color: var(--mint); border-color: rgba(62,224,180,.35); }
-    .pill.warn { color: var(--amber); border-color: rgba(240,180,41,.4); }
-    main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
-    .lede { max-width: 680px; margin-bottom: 24px; }
-    .lede h2 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.03em; }
-    .lede p { margin: 0; color: var(--muted); }
-    .card {
-      background: var(--bg-elev);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      margin-bottom: 16px;
-    }
-    .card h3 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    label.consent {
-      display: flex; gap: 12px; align-items: flex-start;
-      background: var(--bg-elev-2); border-radius: 10px; padding: 12px 14px;
-      border: 1px solid var(--line);
-    }
-    label.consent input { margin-top: 4px; accent-color: var(--mint); }
-    label.consent span { font-size: 14px; color: var(--text); }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } header.appbar { padding: 12px 16px; } }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field.span2 { grid-column: span 2; }
-    @media (max-width: 720px) { .field.span2 { grid-column: span 1; } }
-    .field label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
-    .field input {
-      background: #0d141c; border: 1px solid var(--line); color: var(--text);
-      border-radius: 10px; padding: 10px 12px; font: inherit;
-    }
-    .field input:focus { outline: 2px solid rgba(62,224,180,.35); border-color: var(--mint); }
-    .hint { font-size: 12px; color: var(--muted); margin: 0; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
-    button, .btn {
-      appearance: none; border: 0; cursor: pointer;
-      font-family: inherit; font-weight: 600; font-size: 14px;
-      border-radius: 10px; padding: 10px 16px;
-    }
-    button.primary { background: var(--mint); color: #06241b; }
-    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    button.ghost, a.btn.ghost {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--line);
-    }
-    button.ghost:hover, a.btn.ghost:hover { border-color: var(--mint); color: var(--mint); text-decoration: none; }
-    .error {
-      background: rgba(255,107,90,.1); border: 1px solid rgba(255,107,90,.35);
-      color: #ffc4bc; padding: 10px 12px; border-radius: 10px; margin-top: 12px;
-      display: none; font-size: 14px;
-    }
-    .tools { display: flex; flex-wrap: wrap; gap: 6px; }
-    .toolchip {
-      font-family: "IBM Plex Mono", monospace; font-size: 11px;
-      border-radius: 999px; padding: 3px 8px; border: 1px solid var(--line); color: var(--muted);
-    }
-    .toolchip.on { color: var(--mint); border-color: rgba(62,224,180,.35); }
-    .toolchip.off { color: #6a7380; }
-    .banner {
-      background: rgba(240,180,41,.1); border: 1px solid rgba(240,180,41,.4);
-      color: #ffe0a3; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px;
-      font-size: 14px;
-    }
-    .banner.demo { background: rgba(240,180,41,.12); }
-    .score-wrap { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: center; }
-    @media (max-width: 720px) { .score-wrap { grid-template-columns: 1fr; justify-items: center; } }
-    .gauge { width: 160px; height: 160px; position: relative; }
-    .gauge svg { transform: rotate(-90deg); }
-    .gauge .num {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; font-family: "IBM Plex Mono", monospace;
-    }
-    .gauge .num strong { font-size: 36px; line-height: 1; }
-    .gauge .num span { font-size: 12px; color: var(--muted); }
-    .breakdown { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-    .breakdown li { font-size: 13px; color: var(--muted); }
-    .breakdown li b { color: var(--mint); font-family: "IBM Plex Mono", monospace; font-weight: 500; margin-right: 6px; }
-    .status-low { color: var(--mint); }
-    .status-moderate { color: var(--amber); }
-    .status-high, .status-critical { color: var(--coral); }
-    .progress-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    @media (max-width: 720px) { .progress-list { grid-template-columns: 1fr; } }
-    .toolrow {
-      display: flex; justify-content: space-between; gap: 8px; align-items: center;
-      padding: 8px 10px; background: var(--bg-elev-2); border-radius: 10px; border: 1px solid var(--line);
-      font-size: 13px;
-    }
-    .toolrow .name { font-family: "IBM Plex Mono", monospace; }
-    .badge {
-      font-size: 11px; font-family: "IBM Plex Mono", monospace; border-radius: 999px;
-      padding: 2px 8px; border: 1px solid var(--line); text-transform: lowercase;
-    }
-    .badge.found, .badge.ok, .badge.complete { color: var(--mint); border-color: rgba(62,224,180,.35); }
-    .badge.running, .badge.queued { color: var(--blue); border-color: rgba(122,180,255,.35); }
-    .badge.blocked, .badge.timeout { color: var(--amber); border-color: rgba(240,180,41,.4); }
-    .badge.error, .badge.critical { color: var(--coral); border-color: rgba(255,107,90,.4); }
-    .badge.not_found, .badge.unavailable { color: var(--muted); }
-    .findings { display: flex; flex-direction: column; gap: 10px; }
-    .finding {
-      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #0d141c;
-      display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: start;
-    }
-    @media (max-width: 720px) { .finding { grid-template-columns: 1fr; } }
-    .finding .src { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--blue); }
-    .finding .val { word-break: break-word; }
-    .finding .val a { color: var(--text); }
-    .finding .meta { color: var(--muted); font-size: 12px; }
-    .notes li, .remediation li { margin: 0 0 8px; }
-    .remediation { list-style: none; padding: 0; margin: 0; }
-    .remediation li {
-      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #0d141c;
-      display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;
-    }
-    .remediation li input { margin-top: 4px; accent-color: var(--mint); }
-    .prio { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.06em; }
-    .prio.critical { color: var(--coral); }
-    .prio.high { color: var(--amber); }
-    .prio.medium { color: var(--blue); }
-    .prio.low { color: var(--muted); }
-    details.limits { color: var(--muted); font-size: 14px; }
-    details.limits summary { cursor: pointer; color: var(--text); }
-    footer.page {
-      margin-top: 28px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 16px;
-    }
-    .hidden { display: none !important; }
-    .ai p { white-space: pre-wrap; }
-  </style>
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <header class="appbar">
     <div class="brand">
       <div class="mark">FA</div>
       <div>
-        <h1>Digital Footprint Self-Audit</h1>
-        <p>Public-source OSINT aggregator · localhost only</p>
+        <h1>Footprint Audit</h1>
+        <p>Self-audit of your public presence</p>
       </div>
     </div>
     <nav>
-      <span class="pill" id="bind-pill">127.0.0.1</span>
-      <span class="pill" id="rate-pill">5 scans / hour</span>
-      <a href="/audit">Audit log</a>
-      <a href="/logout">Log out</a>
+      <span class="pill" id="scans-left" title="Live scans this hour">— / 5 scans</span>
+      <div class="status-wrap">
+        <button type="button" class="icon-btn" id="status-btn" aria-expanded="false" aria-controls="status-pop">Status</button>
+        <div class="popover" id="status-pop" role="dialog" aria-label="Tool status">
+          <h4>Sources</h4>
+          <div id="tools"></div>
+          <p class="hint" id="gemini-status"></p>
+        </div>
+      </div>
+      <button type="button" class="icon-btn" id="theme-toggle" title="Toggle theme">Dark</button>
+      <a class="nav-link" href="/audit">Audit log</a>
+      <a class="nav-link" href="/logout">Log out</a>
     </nav>
   </header>
+
   <main>
     <div class="lede">
-      <h2>See what a public username, email, or domain already gives away.</h2>
-      <p>This class project runs selected Kali OSINT tools on identifiers you consent to check, then scores the exposure and suggests fixes. It is a self-audit, not a people-finder. Results can be incomplete or wrong.</p>
+      <h2>See what’s public about you</h2>
+      <p>Search public sources for a username, email, or domain you own. Results stay on this account for the current session.</p>
     </div>
 
-    <section class="card">
-      <h3>Consent (required)</h3>
-      <label class="consent">
-        <input type="checkbox" id="consent" />
-        <span id="consent-text">I confirm that I am searching only my own identifiers, or identifiers of a person who has given informed consent. I understand this tool queries public sources only, must not be used to stalk, harass, or profile someone without consent, and that results can be incomplete or wrong.</span>
-      </label>
-    </section>
-
-    <section class="card">
-      <h3>Identifiers</h3>
+    <section class="card" id="form-card">
       <form id="scan-form">
         <div class="grid">
           <div class="field">
@@ -232,362 +48,335 @@
             <label for="email">Email</label>
             <input id="email" name="email" type="email" autocomplete="off" placeholder="you@example.com" />
           </div>
-          <div class="field span2">
-            <label for="domain">Domain (optional)</label>
-            <input id="domain" name="domain" autocomplete="off" placeholder="example.com" />
+        </div>
+        <details class="more-opts">
+          <summary>More options</summary>
+          <div class="grid">
+            <div class="field">
+              <label for="domain">Domain</label>
+              <input id="domain" name="domain" placeholder="example.com" />
+            </div>
+            <div class="field">
+              <label for="full_name">Full name <span style="font-weight:400">(display only)</span></label>
+              <input id="full_name" name="full_name" placeholder="Optional note" />
+            </div>
+            <div class="field">
+              <label for="city">City <span style="font-weight:400">(display only)</span></label>
+              <input id="city" name="city" placeholder="Optional note" />
+            </div>
           </div>
-          <div class="field">
-            <label for="name">Name (display filter only)</label>
-            <input id="name" name="name" autocomplete="off" placeholder="Not searched" />
-          </div>
-          <div class="field">
-            <label for="city">City (display filter only)</label>
-            <input id="city" name="city" autocomplete="off" placeholder="Not searched" />
+          <p class="hint" style="margin-top:8px">Name and city are never sent to scanners. At least one of username, email, or domain is required.</p>
+        </details>
+        <div class="consent">
+          <input type="checkbox" id="consent" name="consent" required />
+          <div>
+            <label for="consent" class="consent-line">I confirm this is a consented self-audit of identifiers I own or am authorised to check.</label>
+            <details>
+              <summary>What’s this for?</summary>
+              <p>
+                This is a Digital Footprint Self-Audit, not a people-finder. Public sources only — no login-walled scraping, no breach dumps.
+                Instagram and Facebook cannot be reliably checked without logging in. India’s DPDP Act 2023 has a narrow public-data exception;
+                the IT Act still applies. This is not legal advice. Rate limit: 5 live scans per hour.
+              </p>
+            </details>
           </div>
         </div>
-        <p class="hint" style="margin-top:10px">Provide at least one of username, email, or domain. Name and city are never sent to OSINT tools — they only appear as a note so you can ignore obvious mismatches.</p>
         <div class="actions">
-          <button type="submit" class="primary" id="start-btn">Start self-audit</button>
-          <button type="button" class="ghost" id="demo-btn">Load demo result</button>
-          <span class="hint">Demo data is a fictional person, labelled as sample, and works even if Kali tools are missing.</span>
+          <button type="submit" class="primary" id="run-btn">Start audit</button>
+          <button type="button" class="ghost" id="demo-btn">Load demo</button>
         </div>
         <div class="error" id="form-error"></div>
       </form>
     </section>
 
-    <section class="card">
-      <h3>Tool availability</h3>
-      <div class="tools" id="tool-list"><span class="hint">Checking PATH…</span></div>
-      <p class="hint" id="ai-hint" style="margin-top:10px"></p>
+    <section class="card hidden" id="progress-card">
+      <h3>Running</h3>
+      <div class="progress-list" id="progress"></div>
     </section>
 
-    <section id="progress-card" class="card hidden">
-      <h3>Scan progress</h3>
-      <div class="progress-list" id="progress-list"></div>
-    </section>
+    <section id="results" class="hidden"></section>
 
-    <div id="results" class="hidden"></div>
-
-    <details class="limits card">
-      <summary>Known limitations</summary>
-      <ul>
-        <li>Username and email work reasonably well. Name-only search is unreliable and is not offered as a primary input.</li>
-        <li>Instagram, Facebook, and other login-walled sites usually block unauthenticated scanners. A miss is not proof the account is absent.</li>
-        <li>Sherlock and Maigret can report false positives (soft 404s). Treat a single hit as weak evidence.</li>
-        <li>holehe infers registration from signup/recovery responses; it does not access accounts. Modules can break or rate-limit.</li>
-        <li>Have I Been Pwned email search needs a paid API key. Without <code>HIBP_API_KEY</code> you get a manual link only. Breach dumps are never downloaded.</li>
-        <li>Most Kali “OSINT” tools target domains and networks, not people. This app runs a small, structured set and degrades if a binary is missing.</li>
-        <li>The exposure score is a transparent teaching device, not a scientific risk rating.</li>
-        <li>Gemini, if configured, is instructed to summarize only the given facts. If the key is missing or the API returns 429, the rest of the report still works.</li>
-      </ul>
-    </details>
-
-    <footer class="page">
-      Educational use on localhost. Not legal advice. In India, the DPDP Act 2023 and the IT Act still apply to personal data even when it was found in public sources.
-      Search only yourself, or a classmate who has consented. See the README for the ethics note and viva questions.
-    </footer>
+    <p class="page-footer">Educational self-audit. Public sources only. Not legal advice.</p>
   </main>
 
   <script>
     const $ = (id) => document.getElementById(id);
-    let pollTimer = null;
+    const resultsEl = $("results");
+    const progressEl = $("progress");
+    const progressCard = $("progress-card");
+    const formError = $("form-error");
+    const THEME_KEY = "fa-theme";
 
-    async function apiFetch(url, options) {
-      const res = await fetch(url, options);
-      if (res.status === 401) {
-        window.location.href = "/login";
-        throw new Error("Not authenticated");
-      }
-      return res;
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      $("theme-toggle").textContent = theme === "dark" ? "Light" : "Dark";
+      localStorage.setItem(THEME_KEY, theme);
     }
+    applyTheme(localStorage.getItem(THEME_KEY) || "light");
+    $("theme-toggle").addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    const statusBtn = $("status-btn");
+    const statusPop = $("status-pop");
+    statusBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = statusPop.classList.toggle("open");
+      statusBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.addEventListener("click", (e) => {
+      if (!statusPop.contains(e.target) && e.target !== statusBtn) {
+        statusPop.classList.remove("open");
+        statusBtn.setAttribute("aria-expanded", "false");
+      }
+    });
 
     function showError(msg) {
-      const el = $("form-error");
-      el.style.display = msg ? "block" : "none";
-      el.textContent = msg || "";
+      formError.style.display = "block";
+      formError.textContent = msg;
     }
+    function clearError() { formError.style.display = "none"; formError.textContent = ""; }
 
     function badge(status) {
-      const s = (status || "unknown").toLowerCase();
-      return `<span class="badge ${s}">${s.replaceAll("_", " ")}</span>`;
+      return `<span class="badge ${status}">${status.replaceAll("_", " ")}</span>`;
     }
 
-    function scoreClass(label) {
-      const s = (label || "").toLowerCase();
-      if (s === "low") return "status-low";
-      if (s === "moderate") return "status-moderate";
-      if (s === "high") return "status-high";
-      return "status-critical";
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
     }
 
-    function scoreColor(label) {
-      const s = (label || "").toLowerCase();
-      if (s === "low") return "#3ee0b4";
-      if (s === "moderate") return "#f0b429";
-      return "#ff6b5a";
+    function renderTools(tools) {
+      const visible = Object.entries(tools || {}).filter(([, info]) => !info.hidden);
+      const ready = visible.filter(([, i]) => i.available).length;
+      statusBtn.textContent = `${ready}/${visible.length} ready`;
+      $("tools").innerHTML = visible.map(([name, info]) => `
+        <div class="toolrow-mini">
+          <span class="name">${esc(name)}</span>
+          ${badge(info.available ? "ok" : "unavailable")}
+        </div>
+      `).join("");
     }
 
     async function loadHealth() {
-      try {
-        const res = await apiFetch("/api/health");
-        const data = await res.json();
-        if (data.consent_text) $("consent-text").textContent = data.consent_text;
-        const tools = data.tools || {};
-        const box = $("tool-list");
-        box.innerHTML = "";
-        Object.entries(tools).forEach(([name, info]) => {
-          const span = document.createElement("span");
-          span.className = "toolchip " + (info.available ? "on" : "off");
-          span.title = info.available ? (info.path || "available") : (info.reason || "unavailable");
-          span.textContent = name + (info.available ? " · ready" : " · unavailable");
-          box.appendChild(span);
-        });
-        const used = (data.rate_limit && data.rate_limit.used) || 0;
-        const max = (data.rate_limit && data.rate_limit.max) || 5;
-        $("rate-pill").textContent = `${used}/${max} live scans this hour`;
-        const hints = [];
-        if (data.gemini_configured) hints.push("Gemini is configured (" + data.gemini_model + ").");
-        else hints.push("No GEMINI_API_KEY set — the report will skip the AI summary.");
-        if (!data.hibp_configured) hints.push("No HIBP_API_KEY — email scans will link out to Have I Been Pwned instead of running h8mail.");
-        if (data.demo_mode_env) hints.push("DEMO=1 is set. You can still run a live scan; the demo button is the safe viva fallback.");
-        if (data.fake_tools) hints.push("USE_FAKE_TOOLS=1 is set (test mode).");
-        $("ai-hint").textContent = hints.join(" ");
-      } catch (err) {
-        $("tool-list").innerHTML = "<span class='hint'>Could not reach the API. Is the server running?</span>";
-      }
+      const res = await fetch("/api/health");
+      if (res.status === 401) { window.location = "/login"; return; }
+      const data = await res.json();
+      renderTools(data.tools);
+      const used = data.rate_limit?.used ?? 0;
+      const max = data.rate_limit?.max ?? 5;
+      const left = data.rate_limit?.remaining ?? Math.max(0, max - used);
+      $("scans-left").textContent = `${left} / ${max} scans`;
+      const g = data.gemini || {};
+      const configured = g.configured ?? data.gemini_configured;
+      const model = g.model || data.gemini_model || "Gemini";
+      $("gemini-status").textContent = configured
+        ? `AI summary ready (${model})`
+        : "AI summary off — add GEMINI_API_KEY to enable.";
     }
 
-    function renderProgress(job) {
-      const card = $("progress-card");
-      const list = $("progress-list");
-      const tools = job.tools || job.progress || {};
-      const names = Object.keys(tools);
-      if (!names.length) { card.classList.add("hidden"); return; }
-      card.classList.remove("hidden");
-      list.innerHTML = names.map((name) => {
-        const info = tools[name] || {};
-        return `<div class="toolrow"><span class="name">${name}</span><span>${badge(info.status)} <span class="hint">${info.message || ""}</span></span></div>`;
-      }).join("");
-    }
-
-    function gaugeSVG(score, label) {
-      const r = 54, c = 2 * Math.PI * r;
-      const offset = c - (Math.max(0, Math.min(100, score)) / 100) * c;
-      const color = scoreColor(label);
-      return `<div class="gauge">
-        <svg width="160" height="160" viewBox="0 0 160 160" aria-hidden="true">
-          <circle cx="80" cy="80" r="${r}" fill="none" stroke="#1a2430" stroke-width="12"/>
-          <circle cx="80" cy="80" r="${r}" fill="none" stroke="${color}" stroke-width="12"
-            stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
-        </svg>
-        <div class="num">
-          <strong class="${scoreClass(label)}">${score}</strong>
-          <span>${label || ""}</span>
+    function renderProgress(tools, { done = false } = {}) {
+      const entries = Object.entries(tools || {}).filter(([name, info]) => {
+        if (name === "h8mail" && info.status === "unavailable") return false;
+        return true;
+      });
+      if (!entries.length) { progressCard.classList.add("hidden"); return; }
+      progressCard.classList.toggle("hidden", done);
+      progressCard.querySelector("h3").textContent = done ? "Sources" : "Running";
+      progressEl.innerHTML = entries.map(([name, info]) => `
+        <div class="toolrow">
+          <span class="name">${esc(name)}</span>
+          ${badge(info.status)}
         </div>
-      </div>`;
+      `).join("");
     }
 
     function groupFindings(findings) {
-      const groups = {};
-      (findings || []).forEach((f) => {
-        if (!["found", "blocked", "error"].includes(f.status)) return;
-        const key = f.input_type || "other";
-        groups[key] = groups[key] || [];
-        groups[key].push(f);
-      });
+      const groups = { usernames: [], emails: [], domain: [], other: [] };
+      for (const f of findings || []) {
+        if (f.input_type === "username") groups.usernames.push(f);
+        else if (f.input_type === "email") groups.emails.push(f);
+        else if (f.input_type === "domain") groups.domain.push(f);
+        else groups.other.push(f);
+      }
       return groups;
     }
 
-    function renderResults(job) {
-      const root = $("results");
-      if (job.status !== "complete" && job.status !== "error") {
-        if (job.status === "running" || job.status === "queued") {
-          root.classList.add("hidden");
-        }
+    function findingRow(f) {
+      const val = f.url
+        ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.value || f.url)}</a>`
+        : esc(f.value || "—");
+      const raw = f.raw ? `<details><summary>Raw details</summary><pre>${esc(JSON.stringify(f.raw, null, 2))}</pre></details>` : "";
+      return `<div class="finding">
+        <div class="src">${esc(f.source)}</div>
+        <div class="val">${val}<div class="meta">${esc(f.input_type || "")}${f.confidence ? " · " + esc(f.confidence) + " confidence" : ""}</div>${raw}</div>
+        <div>${badge(f.status)}</div>
+      </div>`;
+    }
+
+    function groupBlock(title, items) {
+      if (!items.length) return "";
+      return `<section class="card">
+        <h3>${esc(title)} · ${items.length}</h3>
+        <div class="findings">${items.map(findingRow).join("")}</div>
+      </section>`;
+    }
+
+    function renderResult(job) {
+      resultsEl.classList.remove("hidden");
+      if (job.status === "failed") {
+        resultsEl.innerHTML = `<div class="error" style="display:block">${esc(job.error || "Scan failed")}</div>`;
         return;
       }
-      root.classList.remove("hidden");
-      const demo = job.is_demo
-        ? `<div class="banner demo"><strong>SAMPLE DATA.</strong> ${job.demo_disclaimer || "Fictional person, not a real audit."} Use this when live tools fail in a viva.</div>`
+      const r = job.result || {};
+      const findings = r.findings || job.findings || [];
+      const present = findings.filter((f) => f.status === "found");
+      const profileCount = present.filter((f) => f.input_type === "username").length;
+      const emailCount = present.filter((f) => f.input_type === "email").length;
+      const domainCount = present.filter((f) => f.input_type === "domain").length;
+      const scoreObj = r.score && typeof r.score === "object" ? r.score : null;
+      const total = scoreObj ? scoreObj.total : (r.score ?? job.score);
+      const level = (scoreObj?.level || job.score_label || "low").toLowerCase();
+      const groups = groupFindings(present);
+      const pct = Math.max(0, Math.min(100, Number(total) || 0));
+      const circ = 2 * Math.PI * 54;
+      const dash = circ * (1 - pct / 100);
+      const color = { low: "#0f6e62", moderate: "#b45309", high: "#b42318", critical: "#b42318" }[level] || "#0f6e62";
+      const isDemo = r.is_demo ?? job.is_demo;
+
+      const banner = isDemo
+        ? `<div class="banner"><strong>Demo report</strong> — fictional persona (Alex Rivera / alexrivera_demo). No live scanners were used.</div>`
         : "";
-      const score = job.score ?? "–";
-      const label = job.score_label || "";
-      const breakdown = (job.score_breakdown || []).map((b) =>
-        `<li><b>+${b.points}</b> ${b.detail}</li>`
-      ).join("") || "<li>No scoring rules fired (small public footprint, or nothing was found).</li>";
 
-      let aiBlock = "";
-      if (job.ai_summary) {
-        const note = job.is_demo
-          ? "<p class='hint'>Sample narrative bundled with the demo dataset.</p>"
-          : (job.ai_status === "ok" ? "<p class='hint'>Summarized from the structured findings only. The model was told not to invent facts.</p>" : "");
-        aiBlock = `<div class="ai">${escapeHtml(job.ai_summary).replaceAll("\n", "<br/>")}${note}</div>`;
-      } else if (job.ai_status === "skipped_no_key") {
-        aiBlock = "<p class='hint'>No GEMINI_API_KEY configured. The findings and score below still stand.</p>";
-      } else if (job.ai_status === "skipped_429") {
-        aiBlock = "<p class='hint'>Gemini rate-limited this request (HTTP 429). The rest of the report is complete.</p>";
-      } else if (job.ai_status === "skipped_error") {
-        aiBlock = "<p class='hint'>Gemini was unreachable or returned an error. The rest of the report is complete.</p>";
-      } else {
-        aiBlock = "<p class='hint'>AI summary was not produced.</p>";
-      }
+      const breakdownItems = scoreObj?.breakdown || job.score_breakdown || [];
+      const breakdown = breakdownItems.map((b) =>
+        `<li><strong>${esc(b.points)} pts</strong> — ${esc(b.reason || b.detail || "")}</li>`
+      ).join("");
 
-      const notes = (job.confidence_notes || []).map((n) => `<li>${escapeHtml(n)}</li>`).join("");
-      const rem = (job.remediation || []).map((item) => `
+      const rem = (r.remediation || job.remediation || []).map((item) => `
         <li>
           <input type="checkbox" />
           <div>
-            <div><span class="prio ${item.priority}">${(item.priority || "").toUpperCase()}</span>
-            <strong> ${escapeHtml(item.title)}</strong></div>
-            <div class="hint">${escapeHtml(item.detail || "")}</div>
+            <div class="prio ${esc(item.priority)}">${esc(item.priority)}</div>
+            <div>${esc(item.title)}</div>
+            <div class="meta">${esc(item.detail || "")}</div>
           </div>
-        </li>`).join("") || "<li>No remediation items.</li>";
+        </li>
+      `).join("");
 
-      const groups = groupFindings(job.findings || []);
-      const order = ["username", "email", "domain"];
-      let findingsHtml = "";
-      order.forEach((key) => {
-        const items = groups[key];
-        if (!items || !items.length) return;
-        findingsHtml += `<h3 style="margin-top:16px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px">${key} findings</h3>`;
-        findingsHtml += `<div class="findings">${items.map((f) => `
-          <div class="finding">
-            <div class="src">${escapeHtml(f.source)}</div>
-            <div class="val">${f.url ? `<a href="${escapeAttr(f.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(f.value || f.url)}</a>` : escapeHtml(f.value || "")}
-              <div class="meta">${escapeHtml(f.raw || "")}</div>
-            </div>
-            <div>${badge(f.status)} <span class="hint">${escapeHtml(f.confidence || "")}</span></div>
-          </div>`).join("")}</div>`;
-      });
-      if (!findingsHtml) findingsHtml = "<p class='hint'>No found or blocked rows to display.</p>";
+      const rawAi = r.ai_summary || job.ai_summary;
+      const aiText = rawAi && typeof rawAi === "object" ? (rawAi.text || "") : (rawAi || "");
+      const aiSkipped = rawAi && typeof rawAi === "object" && rawAi.skipped;
+      const aiCard = aiText && !aiSkipped
+        ? `<section class="card ai"><h3>AI summary</h3><p>${esc(aiText)}</p>
+            <p class="hint">${esc((rawAi && rawAi.model) || "")}${rawAi && rawAi.note ? " · " + esc(rawAi.note) : ""}</p></section>`
+        : `<section class="card ai"><h3>AI summary</h3><p class="hint">${esc((rawAi && rawAi.reason) || job.ai_status || "Skipped — no Gemini key, or the model is rate-limited.")}</p></section>`;
 
-      const inputs = job.inputs || {};
-      const ident = ["username", "email", "domain"].filter((k) => inputs[k]).map((k) => `${k}: ${inputs[k]}`).join(" · ");
+      const notes = (job.confidence_notes || r.confidence_notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
+      const filterNote = job.filter_note || r.filter_note || "";
 
-      root.innerHTML = `
-        ${demo}
+      resultsEl.innerHTML = `
+        ${banner}
         <section class="card">
-          <h3>Exposure score</h3>
-          <p class="hint">${escapeHtml(ident)}</p>
-          ${job.filter_note ? `<p class="hint">${escapeHtml(job.filter_note)}</p>` : ""}
+          <h3>Summary</h3>
           <div class="score-wrap">
-            ${gaugeSVG(Number(score) || 0, label)}
-            <ul class="breakdown">${breakdown}</ul>
+            <div class="gauge">
+              <svg width="148" height="148" viewBox="0 0 148 148" aria-hidden="true">
+                <circle cx="74" cy="74" r="54" fill="none" stroke="var(--line)" stroke-width="10" />
+                <circle cx="74" cy="74" r="54" fill="none" stroke="${color}" stroke-width="10"
+                  stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${dash.toFixed(2)}" />
+              </svg>
+              <div class="num"><strong>${esc(total ?? "—")}</strong><span>/ 100</span></div>
+            </div>
+            <div class="stats">
+              <div class="stat"><div class="k">Risk</div><div class="v status-${esc(level)}">${esc(job.score_label || scoreObj?.level || "—")}</div></div>
+              <div class="stat"><div class="k">Profiles found</div><div class="v">${profileCount}</div></div>
+              <div class="stat"><div class="k">Emails registered</div><div class="v">${emailCount}</div></div>
+              <div class="stat"><div class="k">Domain findings</div><div class="v">${domainCount}</div></div>
+            </div>
           </div>
-          <div class="actions">
-            <a class="btn ghost" href="/api/jobs/${encodeURIComponent(job.id)}/report.pdf">Download PDF report</a>
-            ${inputs.email ? `<a class="btn ghost" href="${escapeAttr(job.hibp_link || "https://haveibeenpwned.com/")}" target="_blank" rel="noopener noreferrer">Check email on Have I Been Pwned</a>` : ""}
-          </div>
         </section>
+        ${aiCard}
+        ${breakdown ? `<section class="card"><h3>How the score was built</h3><ul class="notes">${breakdown}</ul></section>` : ""}
+        ${groupBlock("Username matches", groups.usernames)}
+        ${groupBlock("Email registrations", groups.emails)}
+        ${groupBlock("Domain & DNS", groups.domain)}
+        ${groupBlock("Other findings", groups.other)}
+        ${notes || filterNote ? `<section class="card"><h3>How to read this</h3>${filterNote ? `<p class="hint" style="margin-bottom:8px">${esc(filterNote)}</p>` : ""}<ul class="notes">${notes}</ul></section>` : ""}
         <section class="card">
-          <h3>AI summary</h3>
-          ${aiBlock}
+          <h3>Remediation</h3>
+          <ul class="remediation">${rem || "<li>No checklist items.</li>"}</ul>
         </section>
-        <section class="card">
-          <h3>Confidence notes</h3>
-          <ul class="notes">${notes || "<li class='hint'>No additional notes.</li>"}</ul>
-        </section>
-        <section class="card">
-          <h3>Findings</h3>
-          ${findingsHtml}
-        </section>
-        <section class="card">
-          <h3>Remediation checklist</h3>
-          <ul class="remediation">${rem}</ul>
-        </section>
+        <div class="actions">
+          <a class="btn ghost" href="/api/jobs/${esc(job.id)}/report.pdf">Download PDF</a>
+          <a class="btn ghost" href="https://haveibeenpwned.com/" target="_blank" rel="noopener noreferrer">Check Have I Been Pwned</a>
+        </div>
       `;
-      root.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[ch]));
-    }
-    function escapeAttr(value) {
-      return escapeHtml(value).replace(/`/g, "&#96;");
     }
 
     async function pollJob(id) {
-      try {
-        const res = await apiFetch("/api/jobs/" + encodeURIComponent(id));
-        if (!res.ok) throw new Error("Job not found");
-        const job = await res.json();
-        renderProgress(job);
-        if (job.status === "complete" || job.status === "error") {
-          clearInterval(pollTimer);
-          pollTimer = null;
-          if (job.status === "error") showError(job.error || "Scan finished with an error. Partial findings may still be shown.");
-          renderResults(job);
-          $("start-btn").disabled = false;
-          loadHealth();
-        }
-      } catch (err) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-        showError(err.message || "Could not read job status.");
-        $("start-btn").disabled = false;
+      const res = await fetch(`/api/jobs/${id}`);
+      if (res.status === 401) { window.location = "/login"; return; }
+      const job = await res.json();
+      const terminal = job.status !== "queued" && job.status !== "running";
+      renderProgress(job.tools || {}, { done: terminal });
+      if (!terminal) {
+        setTimeout(() => pollJob(id), 900);
+        return;
       }
-    }
-
-    function startPolling(id) {
-      if (pollTimer) clearInterval(pollTimer);
-      pollJob(id);
-      pollTimer = setInterval(() => pollJob(id), 1000);
+      renderResult(job);
+      loadHealth();
     }
 
     $("scan-form").addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      showError("");
-      if (!$("consent").checked) {
-        showError("Please tick the consent box. This tool is only for a self-audit or a person who has agreed.");
-        return;
-      }
-      const payload = {
-        username: $("username").value.trim(),
-        email: $("email").value.trim(),
-        domain: $("domain").value.trim(),
-        name: $("name").value.trim(),
-        city: $("city").value.trim(),
-        consent: true
+      clearError();
+      resultsEl.classList.add("hidden");
+      const body = {
+        username: $("username").value.trim() || null,
+        email: $("email").value.trim() || null,
+        domain: $("domain").value.trim() || null,
+        full_name: $("full_name").value.trim() || null,
+        city: $("city").value.trim() || null,
+        consent: $("consent").checked,
       };
-      if (!payload.username && !payload.email && !payload.domain) {
-        showError("Enter at least one of: username, email, or domain.");
+      if (!body.username && !body.email && !body.domain) {
+        showError("Enter at least a username, email, or domain.");
         return;
       }
-      $("start-btn").disabled = true;
-      $("results").classList.add("hidden");
+      $("run-btn").disabled = true;
       try {
-        const res = await apiFetch("/api/scan", {
+        const res = await fetch("/api/scan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(body),
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.detail || ("Scan failed (" + res.status + ")"));
-        }
-        startPolling(data.job_id || data.id);
+        const data = await res.json();
+        if (!res.ok) { showError(data.detail || "Could not start the scan."); return; }
+        pollJob(data.id);
       } catch (err) {
-        showError(err.message || "Could not start the scan.");
-        $("start-btn").disabled = false;
+        showError(err.message);
+      } finally {
+        $("run-btn").disabled = false;
       }
     });
 
     $("demo-btn").addEventListener("click", async () => {
-      showError("");
-      $("results").classList.add("hidden");
+      clearError();
+      resultsEl.classList.add("hidden");
       try {
-        const res = await apiFetch("/api/demo", { method: "POST" });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.detail || "Could not load the demo.");
-        startPolling(data.job_id || data.id);
+        const res = await fetch("/api/demo", { method: "POST" });
+        if (res.status === 401) { window.location = "/login"; return; }
+        const data = await res.json();
+        if (!res.ok) { showError(data.detail || "Demo failed."); return; }
+        pollJob(data.id);
       } catch (err) {
-        showError(err.message || "Could not load the demo.");
+        showError(err.message);
       }
     });
 
-    loadHealth();
+    loadHealth().catch((err) => showError(err.message));
   </script>
 </body>
 </html>

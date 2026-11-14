@@ -101,7 +101,7 @@ python -m pytest -q
 | dns_lookup | `dnspython` | Standard A/AAAA/MX/NS/TXT/SOA/CNAME | Same shape as dnsrecon records. |
 | crtsh | `httpx` to `https://crt.sh/?q=%.domain&output=json` | Certificate-transparency hostnames | Deduped, apex + subdomains only. |
 | h8mail | Optional binary + `HIBP_API_KEY` | `h8mail -t EMAIL -j out.json -k hibp:$KEY` | Breach *source names* only; passwords are discarded. |
-| dnsrecon / subfinder / theHarvester | Optional binaries, not in the cloud image | Unchanged Kali flags if you install them | Used in addition to the Python equivalents. |
+| dnsrecon / subfinder / theHarvester | Installed in the Docker image: PyPI `dnsrecon==0.10.1`, `theHarvester` 4.6.0 from git (no FastAPI/Playwright extras), official `subfinder` v2.17.0 linux amd64 binary | `dnsrecon -d DOMAIN -t std -j FILE`; `theHarvester -d DOMAIN -b crtsh,hackertarget,duckduckgo -l 100 -f FILE`; `subfinder -d DOMAIN -silent -oJ -o FILE -duc` | Run under the heavy-tool lock so they never overlap Maigret or Sherlock (512 MB cap). Python dns_lookup / crt.sh still run as well. |
 
 Missing binaries are marked `unavailable`; the rest of the scan continues.
 

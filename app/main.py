@@ -362,8 +362,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Digital Footprint Self-Audit Platform",
-    description="Local OSINT aggregator for a cybersecurity class self-audit.",
-    version="1.1.0",
+    description="OSINT self-audit dashboard for a cybersecurity class project.",
+    version="1.2.0",
     lifespan=lifespan,
 )
 
@@ -399,20 +399,29 @@ async def audit_page() -> FileResponse:
 @app.get("/health")
 async def public_health() -> dict[str, Any]:
     """Liveness probe for Render. No secrets, no tool inventory."""
-    return {"ok": True}
+    return {"ok": True, "version": app.version}
 
 
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
-    tools = _tool_cache or adapters.detect_tools()
+    tools = adapters.detect_tools()  # re-read env (HIBP / Gemini are request-time)
+    used = db.count_scans_in_last_hour()
+    gemini_configured = bool(os.environ.get("GEMINI_API_KEY", "").strip())
+    gemini_model = ai.configured_model()
     return {
         "ok": True,
         "tools": tools,
         "demo_mode_env": os.environ.get("DEMO", "").strip() in {"1", "true", "yes"},
-        "gemini_configured": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
-        "gemini_model": ai.configured_model(),
+        "gemini_configured": gemini_configured,
+        "gemini_model": gemini_model,
+        "gemini": {"configured": gemini_configured, "model": gemini_model},
         "hibp_configured": bool(os.environ.get("HIBP_API_KEY", "").strip()),
-        "rate_limit": {"max": RATE_LIMIT, "window": "1 hour", "used": db.count_scans_in_last_hour()},
+        "rate_limit": {
+            "max": RATE_LIMIT,
+            "window": "1 hour",
+            "used": used,
+            "remaining": max(0, RATE_LIMIT - used),
+        },
         "consent_text": CONSENT_TEXT,
         "bind": os.environ.get("HOST", "0.0.0.0"),
         "fake_tools": adapters.use_fake_tools(),
@@ -485,7 +494,7 @@ async def api_audit() -> dict[str, Any]:
 
 def _login_page(error: str = "", next_path: str = "/") -> HTMLResponse:
     template = (STATIC / "login.html").read_text(encoding="utf-8")
-    error_html = f'<div class="error">{html.escape(error)}</div>' if error else ""
+    error_html = f'<div class="error" style="display:block">{html.escape(error)}</div>' if error else ""
     safe_next = next_path if next_path.startswith("/") and not next_path.startswith("//") else "/"
     page = template.replace("<!--ERROR-->", error_html).replace("<!--NEXT-->", html.escape(safe_next, quote=True))
     status = 401 if error else 200

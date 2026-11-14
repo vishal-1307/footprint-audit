@@ -1,87 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Audit log — Digital Footprint Self-Audit</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0b1016; --bg-elev: #131b24; --line: #2a3848;
-      --text: #e6edf3; --muted: #8b9aab; --mint: #3ee0b4;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", sans-serif; }
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 28px; border-bottom: 1px solid var(--line);
-    }
-    a { color: var(--mint); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    main { max-width: 1080px; margin: 0 auto; padding: 32px 20px; }
-    h1 { font-size: 24px; letter-spacing: -0.03em; margin: 0 0 8px; }
-    p { color: var(--muted); }
-    table { width: 100%; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 14px; }
-    th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
-    td.mono { font-family: "IBM Plex Mono", monospace; font-size: 12px; }
-    .empty { color: var(--muted); padding: 24px; }
-    .tag { font-family: "IBM Plex Mono", monospace; font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
-  </style>
+  <title>Audit log · Footprint Audit</title>
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <header>
-    <strong>Digital Footprint Self-Audit</strong>
-    <div>
-      <a href="/">Back to the auditor</a>
-      &nbsp;·&nbsp;
-      <a href="/logout">Log out</a>
+  <header class="appbar">
+    <div class="brand">
+      <div class="mark">FA</div>
+      <div>
+        <h1>Footprint Audit</h1>
+        <p>Audit log</p>
+      </div>
     </div>
+    <nav>
+      <button type="button" class="icon-btn" id="theme-toggle">Dark</button>
+      <a class="nav-link" href="/">New audit</a>
+      <a class="nav-link" href="/logout">Log out</a>
+    </nav>
   </header>
   <main>
-    <h1>Audit log</h1>
-    <p id="note">This log records when a scan ran, which <em>types</em> of identifier were used, whether consent was given, and which tools were scheduled. It does not store emails, usernames, domains, or passwords.</p>
-    <div id="table-wrap"><p class="empty">Loading…</p></div>
+    <div class="lede">
+      <h2>Audit log</h2>
+      <p>Recent scans on this instance. Identifiers are not stored — only input types, mode, and tools run.</p>
+    </div>
+    <section class="card">
+      <div id="log"><p class="empty">Loading…</p></div>
+    </section>
+    <p class="page-footer">Educational self-audit. Public sources only. Not legal advice.</p>
   </main>
   <script>
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[ch]));
+    const THEME_KEY = "fa-theme";
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      document.getElementById("theme-toggle").textContent = theme === "dark" ? "Light" : "Dark";
+      localStorage.setItem(THEME_KEY, theme);
     }
-    function toLocal(ts) {
-      if (!ts) return "";
-      const d = new Date(ts.endsWith("Z") || ts.includes("+") ? ts : ts + "Z");
-      if (Number.isNaN(d.getTime())) return ts;
+    applyTheme(localStorage.getItem(THEME_KEY) || "light");
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+    function when(ts) {
+      if (!ts) return "—";
+      const d = new Date(/Z$|[+-]\d\d:\d\d$/.test(ts) ? ts : ts + "Z");
+      if (Number.isNaN(d.getTime())) return String(ts);
       return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
     }
-    fetch("/api/audit").then((r) => { if (r.status === 401) { window.location.href = "/login"; throw new Error("auth"); } return r; }).then((r) => r.json()).then((data) => {
-      if (data.note) document.getElementById("note").textContent = data.note;
-      const entries = data.entries || [];
-      const wrap = document.getElementById("table-wrap");
-      if (!entries.length) {
-        wrap.innerHTML = "<p class='empty'>No scans have been logged yet.</p>";
-        return;
-      }
-      wrap.innerHTML = `<table>
-        <thead><tr>
-          <th>#</th><th>When</th><th>Input types</th><th>Consent</th><th>Tools run</th><th>Demo</th>
-        </tr></thead>
+
+    fetch("/api/audit").then(async (res) => {
+      if (res.status === 401) { window.location = "/login"; return; }
+      const data = await res.json();
+      const rows = data.entries || [];
+      const el = document.getElementById("log");
+      if (!rows.length) { el.innerHTML = `<p class="empty">No scans recorded yet.</p>`; return; }
+      el.innerHTML = `<div class="table-wrap"><table class="data">
+        <thead><tr><th>When</th><th>Inputs</th><th>Mode</th><th>Tools</th></tr></thead>
         <tbody>
-          ${entries.map((e) => `<tr>
-            <td class="mono">${e.id}</td>
-            <td class="mono">${escapeHtml(toLocal(e.timestamp))}</td>
-            <td class="mono">${escapeHtml(e.input_types || "")}</td>
-            <td>${e.consent ? "yes" : "no"}</td>
-            <td class="mono">${escapeHtml(e.tools_run || "")}</td>
-            <td>${e.is_demo ? '<span class="tag">sample</span>' : ""}</td>
+          ${rows.map((r) => `<tr>
+            <td class="mono">${esc(when(r.timestamp))}</td>
+            <td>${esc(Array.isArray(r.input_types) ? r.input_types.join(", ") : (r.input_types || "—"))}</td>
+            <td>${r.is_demo ? "Demo" : "Live"}</td>
+            <td class="tools">${esc((r.tools_run || "—").replaceAll(",", ", "))}</td>
           </tr>`).join("")}
         </tbody>
-      </table>`;
-    }).catch(() => {
-      document.getElementById("table-wrap").innerHTML = "<p class='empty'>Could not load the audit log.</p>";
+      </table></div>`;
     });
   </script>
 </body>
