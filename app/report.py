@@ -211,6 +211,24 @@ def build_pdf(job: dict[str, Any]) -> bytes:
     else:
         pdf.muted("AI summary was not produced.")
 
+    diff = job.get("diff") or {}
+    if diff.get("has_previous"):
+        pdf.heading("Changes since last scan")
+        when = diff.get("previous_at") or "an earlier scan"
+        pdf.muted(f"Compared with the previous complete scan at {when}.")
+        new_items = diff.get("new") or []
+        removed = diff.get("removed") or []
+        if new_items:
+            pdf.body(f"{len(new_items)} new finding(s):", bold=True)
+            for item in new_items[:20]:
+                pdf.bullet(f"[{item.get('source')}] {item.get('value') or item.get('url') or ''}")
+        if removed:
+            pdf.body(f"{len(removed)} finding(s) no longer present:", bold=True)
+            for item in removed[:20]:
+                pdf.bullet(f"[{item.get('source')}] {item.get('value') or item.get('url') or ''}")
+        if not new_items and not removed:
+            pdf.muted("No added or removed findings since the last scan of these identifiers.")
+
     pdf.heading("Confidence notes")
     notes = job.get("confidence_notes") or []
     if notes:

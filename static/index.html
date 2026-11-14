@@ -89,6 +89,19 @@
       </form>
     </section>
 
+    <section class="card" id="password-card">
+      <h3>Password leak check</h3>
+      <p class="hint">Checked in your browser against Have I Been Pwned’s k-anonymity range API. The password never leaves this device and is never sent to this app — only a 5-character SHA-1 prefix goes to HIBP.</p>
+      <div class="field" style="margin-top:12px">
+        <label for="pw-check">Password</label>
+        <input id="pw-check" type="password" autocomplete="new-password" placeholder="Type a password to check" />
+      </div>
+      <div class="actions">
+        <button type="button" class="ghost" id="pw-btn">Check password</button>
+      </div>
+      <p class="hint" id="pw-result" role="status"></p>
+    </section>
+
     <section class="card hidden" id="progress-card">
       <h3>Running</h3>
       <div class="progress-list" id="progress"></div>
@@ -192,10 +205,27 @@
       `).join("");
     }
 
+    function parseRaw(f) {
+      if (!f || f.raw == null || f.raw === "") return {};
+      if (typeof f.raw === "object") return f.raw;
+      try { return JSON.parse(f.raw); } catch { return {}; }
+    }
+
+    function gradeOf(findings, source) {
+      const hit = (findings || []).find((f) => f.source === source && (parseRaw(f).kind === "grade" || /grade\s+[A-F]/i.test(f.value || "")));
+      if (!hit) return "";
+      return parseRaw(hit).grade || ((hit.value || "").match(/grade\s+([A-F])/i) || [])[1] || "";
+    }
+
     function groupFindings(findings) {
-      const groups = { usernames: [], emails: [], domain: [], other: [] };
+      const groups = { usernames: [], emails: [], breaches: [], profiles: [], mail: [], web: [], domain: [], other: [] };
       for (const f of findings || []) {
-        if (f.input_type === "username") groups.usernames.push(f);
+        const src = f.source || "";
+        if (src === "xposedornot") groups.breaches.push(f);
+        else if (src === "mail_security") groups.mail.push(f);
+        else if (src === "web_security") groups.web.push(f);
+        else if (src === "github_profile" || src === "gravatar") groups.profiles.push(f);
+        else if (f.input_type === "username") groups.usernames.push(f);
         else if (f.input_type === "email") groups.emails.push(f);
         else if (f.input_type === "domain") groups.domain.push(f);
         else groups.other.push(f);
@@ -207,7 +237,9 @@
       const val = f.url
         ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.value || f.url)}</a>`
         : esc(f.value || "—");
-      const raw = f.raw ? `<details><summary>Raw details</summary><pre>${esc(JSON.stringify(f.raw, null, 2))}</pre></details>` : "";
+      const parsed = parseRaw(f);
+      const rawObj = Object.keys(parsed).length ? parsed : f.raw;
+      const raw = rawObj ? `<details><summary>Raw details</summary><pre>${esc(typeof rawObj === "string" ? rawObj : JSON.stringify(rawObj, null, 2))}</pre></details>` : "";
       return `<div class="finding">
         <div class="src">${esc(f.source)}</div>
         <div class="val">${val}<div class="meta">${esc(f.input_type || "")}${f.confidence ? " · " + esc(f.confidence) + " confidence" : ""}</div>${raw}</div>
@@ -232,9 +264,13 @@
       const r = job.result || {};
       const findings = r.findings || job.findings || [];
       const present = findings.filter((f) => f.status === "found");
-      const profileCount = present.filter((f) => f.input_type === "username").length;
-      const emailCount = present.filter((f) => f.input_type === "email").length;
-      const domainCount = present.filter((f) => f.input_type === "domain").length;
+      const profileCount = present.filter((f) => f.input_type === "username" && f.source !== "github_profile").length;
+      const emailCount = present.filter((f) => f.source === "holehe").length;
+      const domainCount = present.filter((f) => f.input_type === "domain" && !["mail_security", "web_security"].includes(f.source)).length;
+      const breachSummary = present.find((f) => f.source === "xposedornot" && parseRaw(f).kind === "summary");
+      const breachCount = parseRaw(breachSummary).count || present.filter((f) => f.source === "xposedornot" && parseRaw(f).kind === "breach").length;
+      const mailGrade = gradeOf(findings, "mail_security");
+      const webGrade = gradeOf(findings, "web_security");
       const scoreObj = r.score && typeof r.score === "object" ? r.score : null;
       const total = scoreObj ? scoreObj.total : (r.score ?? job.score);
       const level = (scoreObj?.level || job.score_label || "low").toLowerCase();
@@ -275,6 +311,27 @@
 
       const notes = (job.confidence_notes || r.confidence_notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
       const filterNote = job.filter_note || r.filter_note || "";
+      const diff = job.diff || r.diff || {};
+      let diffCard = "";
+      if (diff.has_previous) {
+        const when = diff.previous_at ? esc(diff.previous_at) : "the last scan";
+        const added = (diff.new || []).map((f) => `<li>${esc(f.source || "")}: ${esc(f.value || f.url || "")}</li>`).join("");
+        const gone = (diff.removed || []).map((f) => `<li>${esc(f.source || "")}: ${esc(f.value || f.url || "")}</li>`).join("");
+        diffCard = `<section class="card">
+          <h3>Since last scan</h3>
+          <p class="hint">Compared with the previous complete scan of these identifiers (${when}).</p>
+          <div class="diff-col" style="margin-top:12px">
+            <div>
+              <h4>New (${(diff.new || []).length})</h4>
+              ${added ? `<ul class="notes">${added}</ul>` : `<p class="hint">Nothing new.</p>`}
+            </div>
+            <div>
+              <h4>No longer present (${(diff.removed || []).length})</h4>
+              ${gone ? `<ul class="notes">${gone}</ul>` : `<p class="hint">Nothing removed.</p>`}
+            </div>
+          </div>
+        </section>`;
+      }
 
       resultsEl.innerHTML = `
         ${banner}
@@ -293,14 +350,21 @@
               <div class="stat"><div class="k">Risk</div><div class="v status-${esc(level)}">${esc(job.score_label || scoreObj?.level || "—")}</div></div>
               <div class="stat"><div class="k">Profiles found</div><div class="v">${profileCount}</div></div>
               <div class="stat"><div class="k">Emails registered</div><div class="v">${emailCount}</div></div>
-              <div class="stat"><div class="k">Domain findings</div><div class="v">${domainCount}</div></div>
+              <div class="stat"><div class="k">Breaches</div><div class="v">${breachCount || 0}</div></div>
+              ${mailGrade ? `<div class="stat"><div class="k">Mail grade</div><div class="v"><span class="grade-pill grade-${esc(mailGrade)}">${esc(mailGrade)}</span></div></div>` : ""}
+              ${webGrade ? `<div class="stat"><div class="k">Website grade</div><div class="v"><span class="grade-pill grade-${esc(webGrade)}">${esc(webGrade)}</span></div></div>` : `<div class="stat"><div class="k">Domain findings</div><div class="v">${domainCount}</div></div>`}
             </div>
           </div>
         </section>
+        ${diffCard}
         ${aiCard}
         ${breakdown ? `<section class="card"><h3>How the score was built</h3><ul class="notes">${breakdown}</ul></section>` : ""}
         ${groupBlock("Username matches", groups.usernames)}
         ${groupBlock("Email registrations", groups.emails)}
+        ${groupBlock("Data breaches", groups.breaches)}
+        ${groupBlock("Public profile details", groups.profiles)}
+        ${groupBlock("Email & DNS security", groups.mail)}
+        ${groupBlock("Website security", groups.web)}
         ${groupBlock("Domain & DNS", groups.domain)}
         ${groupBlock("Other findings", groups.other)}
         ${notes || filterNote ? `<section class="card"><h3>How to read this</h3>${filterNote ? `<p class="hint" style="margin-bottom:8px">${esc(filterNote)}</p>` : ""}<ul class="notes">${notes}</ul></section>` : ""}
@@ -337,7 +401,7 @@
         username: $("username").value.trim() || null,
         email: $("email").value.trim() || null,
         domain: $("domain").value.trim() || null,
-        full_name: $("full_name").value.trim() || null,
+        name: $("full_name").value.trim() || null,
         city: $("city").value.trim() || null,
         consent: $("consent").checked,
       };
@@ -373,6 +437,50 @@
         pollJob(data.id);
       } catch (err) {
         showError(err.message);
+      }
+    });
+
+    async function sha1Hex(text) {
+      const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    }
+
+    $("pw-btn").addEventListener("click", async () => {
+      const out = $("pw-result");
+      const field = $("pw-check");
+      const password = field.value;
+      out.className = "hint";
+      out.textContent = "";
+      if (!password) { out.textContent = "Enter a password first. It stays in this browser."; return; }
+      $("pw-btn").disabled = true;
+      out.textContent = "Checking…";
+      try {
+        const hash = await sha1Hex(password);
+        const prefix = hash.slice(0, 5);
+        const suffix = hash.slice(5);
+        field.value = "";
+        const res = await fetch("https://api.pwnedpasswords.com/range/" + prefix, {
+          headers: { "Add-Padding": "true" },
+        });
+        if (!res.ok) throw new Error("HIBP returned HTTP " + res.status);
+        const body = await res.text();
+        let count = 0;
+        for (const line of body.split("\n")) {
+          const [hex, n] = line.trim().split(":");
+          if (hex && hex.toUpperCase() === suffix) { count = parseInt(n, 10) || 0; break; }
+        }
+        if (count > 0) {
+          out.className = "hint bad";
+          out.textContent = "Seen in " + count.toLocaleString() + " breach records. Do not use this password anywhere. (Only a 5-character hash prefix left this browser; the password was cleared.)";
+        } else {
+          out.className = "hint ok";
+          out.textContent = "Not found in the Pwned Passwords data set. That is not a guarantee it is strong or unused elsewhere.";
+        }
+      } catch (err) {
+        out.className = "hint warn";
+        out.textContent = "Could not reach Have I Been Pwned from this browser (" + err.message + "). Nothing was sent to this app.";
+      } finally {
+        $("pw-btn").disabled = false;
       }
     });
 

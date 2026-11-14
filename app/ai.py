@@ -27,7 +27,44 @@ def _api_key() -> str | None:
     return key or None
 
 
+def _sanitize_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop raw blobs and anything that looks like a secret before prompting a model."""
+    cleaned: list[dict[str, Any]] = []
+    banned = ("password", "passwd", "secret", "token", "hash", "api_key")
+    for raw in findings or []:
+        item = {
+            "source": raw.get("source"),
+            "input_type": raw.get("input_type"),
+            "value": raw.get("value"),
+            "url": raw.get("url"),
+            "status": raw.get("status"),
+            "confidence": raw.get("confidence"),
+        }
+        blob = raw.get("raw")
+        detail = None
+        if isinstance(blob, dict):
+            detail = {k: v for k, v in blob.items() if not any(b in str(k).lower() for b in banned)}
+            # Keep grades, data classes, issuers — never password material.
+            if "data_classes" in (blob or {}) or blob.get("kind") in {"grade", "profile", "summary", "cert", "headers"}:
+                detail = {k: v for k, v in detail.items() if k not in {"subject"}}
+        elif isinstance(blob, str) and blob.startswith("{"):
+            try:
+                parsed = json.loads(blob)
+            except Exception:
+                parsed = None
+            if isinstance(parsed, dict):
+                detail = {k: v for k, v in parsed.items() if not any(b in str(k).lower() for b in banned)}
+        if detail:
+            item["detail"] = detail
+        value_l = str(item.get("value") or "").lower()
+        if any(b in value_l and "=" in value_l for b in banned):
+            item["value"] = "[redacted]"
+        cleaned.append(item)
+    return cleaned
+
+
 def build_prompt(job: dict[str, Any]) -> str:
+    diff = job.get("diff") or {}
     payload = {
         "inputs_present": {
             "username": bool((job.get("inputs") or {}).get("username")),
@@ -39,9 +76,16 @@ def build_prompt(job: dict[str, Any]) -> str:
         "score": job.get("score"),
         "score_label": job.get("score_label"),
         "score_breakdown": job.get("score_breakdown") or [],
-        "findings": job.get("findings") or [],
+        "findings": _sanitize_findings(job.get("findings") or []),
         "remediation": job.get("remediation") or [],
         "confidence_notes": job.get("confidence_notes") or [],
+        "diff": {
+            "has_previous": bool(diff.get("has_previous")),
+            "new_count": len(diff.get("new") or []),
+            "removed_count": len(diff.get("removed") or []),
+            "new_values": [f.get("value") for f in (diff.get("new") or [])[:12]],
+            "removed_values": [f.get("value") for f in (diff.get("removed") or [])[:12]],
+        },
         "tool_status": {
             name: (info or {}).get("status")
             for name, info in (job.get("tools") or job.get("progress") or {}).items()
@@ -57,6 +101,10 @@ def build_prompt(job: dict[str, Any]) -> str:
         "- Do not treat a missing result as proof that an account does not exist, especially if a tool was blocked or unavailable.\n"
         "- Do not address a third party as a 'target'. This is a self-audit of identifiers the user consented to check.\n"
         "- If this is sample/demo data, say clearly that it is fictional sample data.\n"
+        "- Cover new sections when they appear in the JSON: data breaches (names and data classes only — never passwords), "
+        "mail security (SPF/DMARC/DKIM) grades, website HTTPS/header grades, public GitHub or Gravatar fields, "
+        "and findings that are new or gone since the last scan.\n"
+        "- Never quote raw secrets, password hashes, API keys, or full raw scanner dumps. The JSON has already been sanitized.\n"
         "- Write 3–6 short paragraphs or bullet groups covering: what was found, what was not found or blocked, "
         "confidence caveats, and the most important privacy fixes already listed in remediation.\n"
         "- Do not repeat the raw JSON. Do not add a preamble about being an AI.\n\n"

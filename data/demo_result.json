@@ -2,7 +2,7 @@
   "is_demo": true,
   "demo_disclaimer": "SAMPLE DATA — fictional person, not a real audit.",
   "ai_status": "skipped_no_key",
-  "ai_summary": "SAMPLE NARRATIVE (fictional demo data, not a live Gemini run).\n\nThis bundled example is about a made-up person, Alex Rivera, using the handle alexrivera_demo and the address alex.rivera.demo@example.com, plus the reserved domain rivera-demo.example. It is not a real person's audit.\n\nThe username appears on several public sites (GitHub, Reddit, Dev.to, WordPress, Pinterest). The same handle on multiple sites is a useful hint that the accounts may be linked, but it is not a verified identity match — usernames can be reused by different people. Instagram was blocked by the scanner, so the absence of an Instagram result does not prove an account is missing.\n\nThe email is reported as registered on GitHub, Adobe, Spotify and Dropbox. Those checks infer existence from public signup or recovery responses; they do not log in or read a mailbox. A Have I Been Pwned look-up was not run automatically because no paid HIBP API key is configured.\n\nThe sample WHOIS record exposes a contact email (not privacy-redacted) and a registrant name. A few public subdomains and one harvested mailbox also appear. The most useful fixes in this sample are: enable WHOIS privacy, stop reusing the same handle on sensitive sites, review forgotten accounts on this email, and turn on 2FA.",
+  "ai_summary": "SAMPLE NARRATIVE (fictional demo data, not a live Gemini run).\n\nThis bundled example is about a made-up person, Alex Rivera, using the handle alexrivera_demo and the address alex.rivera.demo@example.com, plus the reserved domain rivera-demo.example. It is not a real person's audit.\n\nThe username appears on several public sites (GitHub, Reddit, Dev.to, WordPress, Pinterest). The same handle on multiple sites is a useful hint that the accounts may be linked, but it is not a verified identity match. Instagram was blocked by the scanner.\n\nA free XposedOrNot lookup (not Have I Been Pwned) reports two fictional breaches — ExampleForum2019 and SampleShop2022 — listing usernames and passwords among the data classes. No password values are included in this report. The email also appears registered on GitHub, Adobe, Spotify and Dropbox.\n\nThe public GitHub profile publishes a name, location (Pune), company, blog, and a public email. A Gravatar profile is also linked to the address. The sample domain has an SPF record but no DMARC or DKIM on common selectors (mail grade C). The website answers on HTTPS with a valid example certificate, but HTTP does not redirect and several security headers are missing; dev.rivera-demo.example is flagged as HTTP-only (website grade C).\n\nCompared with the previous sample scan, the breach, GitHub, Gravatar, and website findings are new, and an old Tumblr hit is no longer present. Useful fixes in this sample: treat the email as breached, add DMARC/DKIM, redirect HTTP to HTTPS and set HSTS, clear the public GitHub email, and turn on 2FA.",
   "inputs": {
     "username": "alexrivera_demo",
     "email": "alex.rivera.demo@example.com",
@@ -11,44 +11,775 @@
     "city": "Pune"
   },
   "tools": {
-    "maigret": {"status": "found", "message": "4 profile(s) found", "elapsed_s": 41.2},
-    "sherlock": {"status": "found", "message": "5 profile(s) found, 1 blocked", "elapsed_s": 38.0},
-    "holehe": {"status": "found", "message": "4 service(s) registered", "elapsed_s": 22.4},
-    "h8mail": {"status": "unavailable", "message": "HIBP_API_KEY is not set — skipped; use the Have I Been Pwned link"},
-    "whois": {"status": "found", "message": "WHOIS record parsed", "elapsed_s": 1.1},
-    "dnsrecon": {"status": "found", "message": "6 record(s)", "elapsed_s": 3.4},
-    "subfinder": {"status": "found", "message": "3 subdomain(s)", "elapsed_s": 2.8},
-    "theharvester": {"status": "found", "message": "3 item(s)", "elapsed_s": 12.0}
+    "maigret": {
+      "status": "found",
+      "message": "4 profile(s) found",
+      "elapsed_s": 41.2
+    },
+    "sherlock": {
+      "status": "found",
+      "message": "5 profile(s) found, 1 blocked",
+      "elapsed_s": 38.0
+    },
+    "holehe": {
+      "status": "found",
+      "message": "4 service(s) registered",
+      "elapsed_s": 22.4
+    },
+    "h8mail": {
+      "status": "unavailable",
+      "message": "HIBP_API_KEY is not set — skipped; use the Have I Been Pwned link"
+    },
+    "whois": {
+      "status": "found",
+      "message": "WHOIS record parsed",
+      "elapsed_s": 1.1
+    },
+    "dnsrecon": {
+      "status": "found",
+      "message": "6 record(s)",
+      "elapsed_s": 3.4
+    },
+    "subfinder": {
+      "status": "found",
+      "message": "3 subdomain(s)",
+      "elapsed_s": 2.8
+    },
+    "theharvester": {
+      "status": "found",
+      "message": "3 item(s)",
+      "elapsed_s": 12.0
+    },
+    "xposedornot": {
+      "status": "found",
+      "message": "2 breach(es) reported",
+      "elapsed_s": 0.8
+    },
+    "mail_security": {
+      "status": "found",
+      "message": "Mail grade C",
+      "elapsed_s": 1.4
+    },
+    "web_security": {
+      "status": "found",
+      "message": "Website grade C",
+      "elapsed_s": 2.1
+    },
+    "github_profile": {
+      "status": "found",
+      "message": "GitHub @alexrivera_demo",
+      "elapsed_s": 0.4
+    },
+    "gravatar": {
+      "status": "found",
+      "message": "Gravatar profile: Alex Rivera",
+      "elapsed_s": 0.3
+    }
   },
   "findings": [
-    {"source": "sherlock", "input_type": "username", "value": "GitHub", "url": "https://github.com/alexrivera_demo", "status": "found", "confidence": "high", "raw": "exists=Claimed; http_status=200"},
-    {"source": "sherlock", "input_type": "username", "value": "Reddit", "url": "https://www.reddit.com/user/alexrivera_demo", "status": "found", "confidence": "high", "raw": "exists=Claimed; http_status=200"},
-    {"source": "sherlock", "input_type": "username", "value": "Dev.to", "url": "https://dev.to/alexrivera_demo", "status": "found", "confidence": "medium", "raw": "exists=Claimed; http_status=200"},
-    {"source": "sherlock", "input_type": "username", "value": "WordPress", "url": "https://alexrivera_demo.wordpress.com", "status": "found", "confidence": "medium", "raw": "exists=Claimed; http_status=200"},
-    {"source": "sherlock", "input_type": "username", "value": "Pinterest", "url": "https://www.pinterest.com/alexrivera_demo", "status": "found", "confidence": "medium", "raw": "exists=Claimed; http_status=200"},
-    {"source": "sherlock", "input_type": "username", "value": "Instagram", "url": "https://www.instagram.com/alexrivera_demo", "status": "blocked", "confidence": "low", "raw": "exists=WAF; http_status=403"},
-    {"source": "maigret", "input_type": "username", "value": "GitHub", "url": "https://github.com/alexrivera_demo", "status": "found", "confidence": "high", "raw": "{\"status\":\"Claimed\",\"http_status\":200}"},
-    {"source": "maigret", "input_type": "username", "value": "Reddit", "url": "https://www.reddit.com/user/alexrivera_demo", "status": "found", "confidence": "high", "raw": "{\"status\":\"Claimed\",\"http_status\":200}"},
-    {"source": "maigret", "input_type": "username", "value": "Dev.to", "url": "https://dev.to/alexrivera_demo", "status": "found", "confidence": "medium", "raw": "{\"status\":\"Claimed\"}"},
-    {"source": "maigret", "input_type": "username", "value": "WordPress", "url": "https://alexrivera_demo.wordpress.com", "status": "found", "confidence": "medium", "raw": "{\"status\":\"Claimed\"}"},
-    {"source": "holehe", "input_type": "email", "value": "github", "url": "https://github.com", "status": "found", "confidence": "medium", "raw": "exists=true"},
-    {"source": "holehe", "input_type": "email", "value": "adobe", "url": "https://adobe.com", "status": "found", "confidence": "medium", "raw": "exists=true"},
-    {"source": "holehe", "input_type": "email", "value": "spotify", "url": "https://spotify.com", "status": "found", "confidence": "medium", "raw": "exists=true"},
-    {"source": "holehe", "input_type": "email", "value": "dropbox", "url": "https://dropbox.com", "status": "found", "confidence": "medium", "raw": "exists=true"},
-    {"source": "whois", "input_type": "domain", "value": "Example Registrar, Inc.", "url": "", "status": "found", "confidence": "high", "raw": "domain=rivera-demo.example; registrar=Example Registrar, Inc.; created=2020-04-01; ns=ns1.rivera-demo.example,ns2.rivera-demo.example"},
-    {"source": "whois", "input_type": "domain", "value": "Alex Rivera (fictional)", "url": "", "status": "found", "confidence": "medium", "raw": "whois_registrant"},
-    {"source": "whois", "input_type": "domain", "value": "alex.rivera.demo@example.com", "url": "", "status": "found", "confidence": "high", "raw": "whois_email"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "A rivera-demo.example → 203.0.113.10", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"A\",\"name\":\"rivera-demo.example\",\"address\":\"203.0.113.10\"}"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "AAAA rivera-demo.example → 2001:db8::10", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"AAAA\"}"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "MX rivera-demo.example → mail.rivera-demo.example", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"MX\"}"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "NS rivera-demo.example → ns1.rivera-demo.example", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"NS\"}"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "NS rivera-demo.example → ns2.rivera-demo.example", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"NS\"}"},
-    {"source": "dnsrecon", "input_type": "domain", "value": "SOA rivera-demo.example → ns1.rivera-demo.example", "url": "", "status": "found", "confidence": "high", "raw": "{\"type\":\"SOA\"}"},
-    {"source": "subfinder", "input_type": "domain", "value": "www.rivera-demo.example", "url": "https://www.rivera-demo.example", "status": "found", "confidence": "high", "raw": "source=demo"},
-    {"source": "subfinder", "input_type": "domain", "value": "mail.rivera-demo.example", "url": "https://mail.rivera-demo.example", "status": "found", "confidence": "high", "raw": "source=demo"},
-    {"source": "subfinder", "input_type": "domain", "value": "dev.rivera-demo.example", "url": "https://dev.rivera-demo.example", "status": "found", "confidence": "high", "raw": "source=demo"},
-    {"source": "theharvester", "input_type": "domain", "value": "hello@rivera-demo.example", "url": "", "status": "found", "confidence": "medium", "raw": "harvested_email"},
-    {"source": "theharvester", "input_type": "domain", "value": "www.rivera-demo.example", "url": "https://www.rivera-demo.example", "status": "found", "confidence": "medium", "raw": "www.rivera-demo.example"},
-    {"source": "theharvester", "input_type": "domain", "value": "Alex Rivera", "url": "", "status": "found", "confidence": "low", "raw": "person"}
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "GitHub",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Reddit",
+      "url": "https://www.reddit.com/user/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Dev.to",
+      "url": "https://dev.to/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "WordPress",
+      "url": "https://alexrivera_demo.wordpress.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Pinterest",
+      "url": "https://www.pinterest.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Instagram",
+      "url": "https://www.instagram.com/alexrivera_demo",
+      "status": "blocked",
+      "confidence": "low",
+      "raw": "exists=WAF; http_status=403"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "GitHub",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"status\":\"Claimed\",\"http_status\":200}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "Reddit",
+      "url": "https://www.reddit.com/user/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"status\":\"Claimed\",\"http_status\":200}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "Dev.to",
+      "url": "https://dev.to/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"status\":\"Claimed\"}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "WordPress",
+      "url": "https://alexrivera_demo.wordpress.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"status\":\"Claimed\"}"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "github",
+      "url": "https://github.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "adobe",
+      "url": "https://adobe.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "spotify",
+      "url": "https://spotify.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "dropbox",
+      "url": "https://dropbox.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "Example Registrar, Inc.",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "domain=rivera-demo.example; registrar=Example Registrar, Inc.; created=2020-04-01; ns=ns1.rivera-demo.example,ns2.rivera-demo.example"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "Alex Rivera (fictional)",
+      "url": "",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "whois_registrant"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "alex.rivera.demo@example.com",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "whois_email"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "A rivera-demo.example → 203.0.113.10",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"A\",\"name\":\"rivera-demo.example\",\"address\":\"203.0.113.10\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "AAAA rivera-demo.example → 2001:db8::10",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"AAAA\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "MX rivera-demo.example → mail.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"MX\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "NS rivera-demo.example → ns1.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"NS\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "NS rivera-demo.example → ns2.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"NS\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "SOA rivera-demo.example → ns1.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"SOA\"}"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "www.rivera-demo.example",
+      "url": "https://www.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "mail.rivera-demo.example",
+      "url": "https://mail.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "dev.rivera-demo.example",
+      "url": "https://dev.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "hello@rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "harvested_email"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "www.rivera-demo.example",
+      "url": "https://www.rivera-demo.example",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "www.rivera-demo.example"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "Alex Rivera",
+      "url": "",
+      "status": "found",
+      "confidence": "low",
+      "raw": "person"
+    },
+    {
+      "source": "xposedornot",
+      "input_type": "email",
+      "value": "2 breach(es) reported — ExampleForum2019, SampleShop2022",
+      "url": "https://xposedornot.com/",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"summary\",\"count\":2,\"breaches\":[\"ExampleForum2019\",\"SampleShop2022\"],\"data_classes\":[\"Usernames\",\"Passwords\",\"Email addresses\"]}"
+    },
+    {
+      "source": "xposedornot",
+      "input_type": "email",
+      "value": "ExampleForum2019 (2019) — Usernames, Passwords",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"breach\",\"name\":\"ExampleForum2019\",\"year\":\"2019\",\"data_classes\":[\"Usernames\",\"Passwords\"],\"domain\":\"exampleforum.example\"}"
+    },
+    {
+      "source": "xposedornot",
+      "input_type": "email",
+      "value": "SampleShop2022 (2022) — Email addresses, Passwords",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"breach\",\"name\":\"SampleShop2022\",\"year\":\"2022\",\"data_classes\":[\"Email addresses\",\"Passwords\"],\"domain\":\"sampleshop.example\"}"
+    },
+    {
+      "source": "mail_security",
+      "input_type": "domain",
+      "value": "Mail security grade C",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"grade\",\"grade\":\"C\",\"score\":62,\"mx\":[\"mail.rivera-demo.example\"],\"spf\":\"v=spf1 include:_spf.rivera-demo.example ~all\",\"dmarc\":\"\",\"dkim\":[],\"issues\":[\"No DMARC record at _dmarc. Receivers will not know how to handle failed mail.\",\"No DKIM key found for common selectors. Add a DKIM TXT record for your mail provider.\"]}"
+    },
+    {
+      "source": "mail_security",
+      "input_type": "domain",
+      "value": "MX: mail.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"mx\",\"mx\":[\"mail.rivera-demo.example\"]}"
+    },
+    {
+      "source": "mail_security",
+      "input_type": "domain",
+      "value": "SPF: v=spf1 include:_spf.rivera-demo.example ~all",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"spf\",\"spf\":\"v=spf1 include:_spf.rivera-demo.example ~all\"}"
+    },
+    {
+      "source": "mail_security",
+      "input_type": "domain",
+      "value": "No DMARC record",
+      "url": "",
+      "status": "not_found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"dmarc\",\"dmarc\":\"\"}"
+    },
+    {
+      "source": "mail_security",
+      "input_type": "domain",
+      "value": "No DKIM key on common selectors",
+      "url": "",
+      "status": "not_found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"dkim\",\"dkim\":[]}"
+    },
+    {
+      "source": "web_security",
+      "input_type": "domain",
+      "value": "Website security grade C",
+      "url": "https://rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"grade\",\"grade\":\"C\",\"score\":64,\"https_ok\":true,\"redirect_to_https\":false,\"cert\":{\"issuer\":\"Example CA, Inc.\",\"not_after\":\"Apr  1 00:00:00 2027 GMT\",\"days_left\":140},\"present_headers\":[\"x-content-type-options\"],\"missing_headers\":[\"strict-transport-security\",\"content-security-policy\",\"x-frame-options\",\"referrer-policy\",\"permissions-policy\"],\"open_http_hosts\":[\"dev.rivera-demo.example\"],\"issues\":[\"HTTP does not redirect to HTTPS.\",\"Missing headers: strict-transport-security, content-security-policy, x-frame-options, referrer-policy, permissions-policy.\",\"1 live host(s) answered HTTP without a reliable HTTPS upgrade: dev.rivera-demo.example.\"]}"
+    },
+    {
+      "source": "web_security",
+      "input_type": "domain",
+      "value": "TLS: Example CA, Inc. (expires Apr  1 00:00:00 2027 GMT, 140 day(s) left)",
+      "url": "https://rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"cert\",\"issuer\":\"Example CA, Inc.\",\"not_after\":\"Apr  1 00:00:00 2027 GMT\",\"days_left\":140}"
+    },
+    {
+      "source": "web_security",
+      "input_type": "domain",
+      "value": "HTTP does not redirect to HTTPS",
+      "url": "http://rivera-demo.example",
+      "status": "not_found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"redirect\",\"redirect_to_https\":false}"
+    },
+    {
+      "source": "web_security",
+      "input_type": "domain",
+      "value": "Security headers present: x-content-type-options (missing strict-transport-security, content-security-policy, x-frame-options, referrer-policy, permissions-policy)",
+      "url": "https://rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"headers\",\"present\":[\"x-content-type-options\"],\"missing\":[\"strict-transport-security\",\"content-security-policy\",\"x-frame-options\",\"referrer-policy\",\"permissions-policy\"]}"
+    },
+    {
+      "source": "web_security",
+      "input_type": "domain",
+      "value": "Live host without a reliable HTTPS upgrade: dev.rivera-demo.example",
+      "url": "http://dev.rivera-demo.example",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"open_http\",\"host\":\"dev.rivera-demo.example\"}"
+    },
+    {
+      "source": "github_profile",
+      "input_type": "username",
+      "value": "GitHub @alexrivera_demo — Alex Rivera, 7 public repos, since 4y",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"profile\",\"pii_fields\":[\"email\",\"location\",\"company\",\"blog\",\"name\"],\"name\":\"Alex Rivera\",\"bio\":\"Fictional student, coffee and rust.\",\"location\":\"Pune\",\"company\":\"Demo Labs\",\"blog\":\"https://rivera-demo.example\",\"email\":\"alex.rivera.demo@example.com\",\"created_at\":\"2022-01-15T10:00:00Z\",\"public_repos\":7,\"followers\":12}"
+    },
+    {
+      "source": "github_profile",
+      "input_type": "username",
+      "value": "Public email on GitHub: alex.rivera.demo@example.com",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"pii\",\"field\":\"email\"}"
+    },
+    {
+      "source": "github_profile",
+      "input_type": "username",
+      "value": "GitHub location: Pune",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"pii\",\"field\":\"location\"}"
+    },
+    {
+      "source": "github_profile",
+      "input_type": "username",
+      "value": "GitHub company: Demo Labs",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"pii\",\"field\":\"company\"}"
+    },
+    {
+      "source": "github_profile",
+      "input_type": "username",
+      "value": "GitHub blog: https://rivera-demo.example",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"pii\",\"field\":\"blog\"}"
+    },
+    {
+      "source": "gravatar",
+      "input_type": "email",
+      "value": "Gravatar profile: Alex Rivera",
+      "url": "https://gravatar.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"kind\":\"profile\",\"display\":\"Alex Rivera\",\"location\":\"Pune\",\"about\":\"Fictional demo persona.\",\"pii_fields\":[\"location\",\"about\",\"name\"]}"
+    },
+    {
+      "source": "gravatar",
+      "input_type": "email",
+      "value": "Gravatar location: Pune",
+      "url": "https://gravatar.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"kind\":\"pii\",\"field\":\"location\"}"
+    }
+  ],
+  "previous_findings": [
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "GitHub",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Reddit",
+      "url": "https://www.reddit.com/user/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Dev.to",
+      "url": "https://dev.to/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "WordPress",
+      "url": "https://alexrivera_demo.wordpress.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Instagram",
+      "url": "https://www.instagram.com/alexrivera_demo",
+      "status": "blocked",
+      "confidence": "low",
+      "raw": "exists=WAF; http_status=403"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "GitHub",
+      "url": "https://github.com/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"status\":\"Claimed\",\"http_status\":200}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "Reddit",
+      "url": "https://www.reddit.com/user/alexrivera_demo",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"status\":\"Claimed\",\"http_status\":200}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "Dev.to",
+      "url": "https://dev.to/alexrivera_demo",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"status\":\"Claimed\"}"
+    },
+    {
+      "source": "maigret",
+      "input_type": "username",
+      "value": "WordPress",
+      "url": "https://alexrivera_demo.wordpress.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "{\"status\":\"Claimed\"}"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "github",
+      "url": "https://github.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "adobe",
+      "url": "https://adobe.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "spotify",
+      "url": "https://spotify.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "holehe",
+      "input_type": "email",
+      "value": "dropbox",
+      "url": "https://dropbox.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=true"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "Example Registrar, Inc.",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "domain=rivera-demo.example; registrar=Example Registrar, Inc.; created=2020-04-01; ns=ns1.rivera-demo.example,ns2.rivera-demo.example"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "Alex Rivera (fictional)",
+      "url": "",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "whois_registrant"
+    },
+    {
+      "source": "whois",
+      "input_type": "domain",
+      "value": "alex.rivera.demo@example.com",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "whois_email"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "A rivera-demo.example → 203.0.113.10",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"A\",\"name\":\"rivera-demo.example\",\"address\":\"203.0.113.10\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "AAAA rivera-demo.example → 2001:db8::10",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"AAAA\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "MX rivera-demo.example → mail.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"MX\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "NS rivera-demo.example → ns1.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"NS\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "NS rivera-demo.example → ns2.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"NS\"}"
+    },
+    {
+      "source": "dnsrecon",
+      "input_type": "domain",
+      "value": "SOA rivera-demo.example → ns1.rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "high",
+      "raw": "{\"type\":\"SOA\"}"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "www.rivera-demo.example",
+      "url": "https://www.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "mail.rivera-demo.example",
+      "url": "https://mail.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "subfinder",
+      "input_type": "domain",
+      "value": "dev.rivera-demo.example",
+      "url": "https://dev.rivera-demo.example",
+      "status": "found",
+      "confidence": "high",
+      "raw": "source=demo"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "hello@rivera-demo.example",
+      "url": "",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "harvested_email"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "www.rivera-demo.example",
+      "url": "https://www.rivera-demo.example",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "www.rivera-demo.example"
+    },
+    {
+      "source": "theharvester",
+      "input_type": "domain",
+      "value": "Alex Rivera",
+      "url": "",
+      "status": "found",
+      "confidence": "low",
+      "raw": "person"
+    },
+    {
+      "source": "sherlock",
+      "input_type": "username",
+      "value": "Tumblr",
+      "url": "https://alexrivera_demo.tumblr.com",
+      "status": "found",
+      "confidence": "medium",
+      "raw": "exists=Claimed; http_status=200"
+    }
   ]
 }

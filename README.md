@@ -102,6 +102,12 @@ python -m pytest -q
 | crtsh | `httpx` to `https://crt.sh/?q=%.domain&output=json` | Certificate-transparency hostnames | Deduped, apex + subdomains only. |
 | h8mail | Optional binary + `HIBP_API_KEY` | `h8mail -t EMAIL -j out.json -k hibp:$KEY` | Breach *source names* only; passwords are discarded. |
 | dnsrecon / subfinder / theHarvester | Installed in the Docker image: PyPI `dnsrecon==0.10.1`, `theHarvester` 4.6.0 from git (no FastAPI/Playwright extras), official `subfinder` v2.17.0 linux amd64 binary | `dnsrecon -d DOMAIN -t std -j FILE`; `theHarvester -d DOMAIN -b crtsh,hackertarget,duckduckgo -l 100 -f FILE`; `subfinder -d DOMAIN -silent -oJ -o FILE -duc` | Run under the heavy-tool lock so they never overlap Maigret or Sherlock (512 MB cap). Python dns_lookup / crt.sh still run as well. |
+| XposedOrNot | Free HTTP API, no key | `GET https://api.xposedornot.com/v1/breach-analytics?email=` (fallback `/v1/check-email/{email}`) | Breach names, years, data classes. 429s are reported as blocked. |
+| mail_security | `dnspython` | MX, SPF TXT, `_dmarc`, common DKIM selectors | Letter grade and fix list. |
+| web_security | `httpx` + stdlib `ssl` | HTTPS, HTTP→HTTPS redirect, cert issuer/expiry, security headers; capped HEAD of crt.sh hosts | Letter grade. Max 8 live-host checks. |
+| github_profile | GitHub public API, unauthenticated (60/hr) | `GET https://api.github.com/users/{username}` | Name, bio, location, company, blog, public email, account age, repo count. |
+| gravatar | Gravatar profile JSON | SHA-256 then MD5 of the lowercased email | Public display name / location if a profile exists. |
+| Password leak check | Browser-only, HIBP Pwned Passwords k-anonymity | `https://api.pwnedpasswords.com/range/{5-char SHA-1 prefix}` | The password never reaches this server. |
 
 Missing binaries are marked `unavailable`; the rest of the scan continues.
 

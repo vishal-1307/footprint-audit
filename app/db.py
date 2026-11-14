@@ -76,6 +76,12 @@ def init_db(path: str | Path | None = None) -> Path:
                 );
                 """
             )
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+            if "identifier_hash" not in cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN identifier_hash TEXT")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_identifier_hash ON jobs(identifier_hash, created_at)"
+            )
             conn.commit()
         finally:
             conn.close()
@@ -154,6 +160,7 @@ def update_job(job_id: str, **fields: Any) -> None:
         "is_demo",
         "inputs_json",
         "consent",
+        "identifier_hash",
     }
     json_fields = {
         "tools_json",
@@ -229,6 +236,7 @@ def _job_from_row(row: sqlite3.Row) -> dict:
         "ai_status": row["ai_status"],
         "error": row["error"],
         "is_demo": bool(row["is_demo"]),
+        "identifier_hash": row["identifier_hash"] if "identifier_hash" in row.keys() else None,
     }
 
 
@@ -338,3 +346,40 @@ def count_scans_in_last_hour() -> int:
         if ts >= cutoff:
             n += 1
     return n
+
+
+def previous_complete_job(identifier_hash: str, exclude_id: str | None = None) -> dict | None:
+    """Most recent completed job with the same identifier hash, excluding `exclude_id`."""
+    if not identifier_hash:
+        return None
+    with _lock:
+        conn = _connect()
+        try:
+            if exclude_id:
+                row = conn.execute(
+                    """
+                    SELECT * FROM jobs
+                    WHERE identifier_hash = ?
+                      AND status = 'complete'
+                      AND id != ?
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    (identifier_hash, exclude_id),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """
+                    SELECT * FROM jobs
+                    WHERE identifier_hash = ?
+                      AND status = 'complete'
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    (identifier_hash,),
+                ).fetchone()
+        finally:
+            conn.close()
+    if row is None:
+        return None
+    return _job_from_row(row)

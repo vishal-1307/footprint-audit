@@ -137,3 +137,41 @@ def test_labels():
     assert score_label(74) == "High"
     assert score_label(75) == "Critical"
     assert score_label(100) == "Critical"
+
+
+def test_xposedornot_and_mail_web_points():
+    import json
+    findings = [
+        _f(
+            source="xposedornot",
+            input_type="email",
+            value="2 breach(es) reported — ExampleForum2019, SampleShop2022",
+            raw=json.dumps({"kind": "summary", "count": 2, "breaches": ["ExampleForum2019", "SampleShop2022"], "data_classes": ["Passwords"]}),
+        ),
+        _f(
+            source="mail_security",
+            input_type="domain",
+            value="Mail security grade D",
+            raw=json.dumps({"kind": "grade", "grade": "D", "score": 40}),
+        ),
+        _f(
+            source="web_security",
+            input_type="domain",
+            value="Website security grade C",
+            raw=json.dumps({"kind": "grade", "grade": "C", "score": 64}),
+        ),
+        _f(source="github_profile", input_type="username", value="Public email on GitHub: alex.rivera.demo@example.com"),
+        _f(source="gravatar", input_type="email", value="Gravatar profile: Alex Rivera"),
+    ]
+    result = evaluate(findings, {"email": "alex.rivera.demo@example.com", "domain": "rivera-demo.example", "username": "alexrivera_demo"})
+    rules = {b["rule"]: b["points"] for b in result["score_breakdown"]}
+    assert rules["breach_confirmed"] == 25
+    assert rules["breach_sensitive_data"] == 8
+    assert rules["mail_security_weak"] == 12
+    assert rules["web_security_weak"] == 6
+    assert rules["github_public_email"] == 6
+    assert rules["gravatar_profile"] == 4
+    assert result["score"] <= 100
+    titles = [i["title"].lower() for i in result["remediation"]]
+    assert any("breached" in t for t in titles)
+    assert any("spf" in t or "dmarc" in t for t in titles)

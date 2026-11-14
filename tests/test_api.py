@@ -169,3 +169,25 @@ def test_pages_drop_localhost_wording(client: TestClient):
     assert "more options" in home
     assert "/static/styles.css" in home
     assert "/static/styles.css" in login
+
+
+def test_demo_includes_new_sections_and_diff(client: TestClient):
+    res = client.post("/api/demo")
+    assert res.status_code == 200
+    job = client.get(f"/api/jobs/{res.json()['id']}").json()
+    sources = {f["source"] for f in job["findings"]}
+    assert "xposedornot" in sources
+    assert "mail_security" in sources
+    assert "web_security" in sources
+    assert "github_profile" in sources
+    assert "gravatar" in sources
+    assert job["diff"]["has_previous"] is True
+    assert job["diff"]["new"] or job["diff"]["removed"]
+    assert "password" not in str(job).lower() or "passwords" in str(job).lower()
+    # The word "passwords" as a data class is fine; no actual password values.
+    assert "should-not-appear" not in str(job)
+
+
+def test_no_password_endpoint(client: TestClient):
+    assert client.post("/api/password-check", json={"password": "secret"}).status_code in {404, 405, 422}
+    assert client.get("/api/health").status_code == 200

@@ -133,6 +133,22 @@ def filter_note(inputs: dict[str, str]) -> str | None:
     )
 
 
+
+def _attach_history(job_id: str, inputs: dict[str, str], findings: list[dict]) -> dict:
+    """Persist the identifier hash and return a diff against the previous complete job."""
+    from .enrichment import diff_findings, identifier_hash
+
+    digest = identifier_hash(inputs)
+    previous = db.previous_complete_job(digest, exclude_id=job_id)
+    db.update_job(job_id, identifier_hash=digest)
+    diff = diff_findings(findings, previous["findings"] if previous else None)
+    if previous:
+        diff["previous_job_id"] = previous["id"]
+        diff["previous_at"] = previous["created_at"]
+        diff["previous_is_demo"] = bool(previous.get("is_demo"))
+    return diff
+
+
 def job_public_view(job: dict[str, Any]) -> dict[str, Any]:
     """Shape the DB row for the frontend / PDF consumers."""
     tools = job.get("tools") or {}
@@ -169,7 +185,18 @@ def job_public_view(job: dict[str, Any]) -> dict[str, Any]:
         "hibp_link": adapters.hibp_link((job.get("inputs") or {}).get("email")),
         "filter_note": filter_note(job.get("inputs") or {}),
         "demo_mode_env": os.environ.get("DEMO", "").strip() in {"1", "true", "yes"},
+        "diff": job.get("diff") if job.get("diff") is not None else None,
     }
+    if view["diff"] is None:
+        digest = (job.get("identifier_hash") or "") 
+        previous = db.previous_complete_job(digest, exclude_id=job.get("id")) if digest else None
+        from .enrichment import diff_findings
+        diff = diff_findings(view["findings"], previous["findings"] if previous else None)
+        if previous:
+            diff["previous_job_id"] = previous["id"]
+            diff["previous_at"] = previous["created_at"]
+            diff["previous_is_demo"] = bool(previous.get("is_demo"))
+        view["diff"] = diff
     return view
 
 
@@ -184,6 +211,19 @@ def persist_demo_job() -> dict[str, Any]:
     job_id = "demo-" + uuid.uuid4().hex[:8]
     inputs = template.get("inputs") or {}
     tools = template.get("tools") or {}
+    previous_findings = template.get("previous_findings")
+    if previous_findings is not None:
+        from .enrichment import identifier_hash as _idhash
+        prev_id = "demo-prev-" + uuid.uuid4().hex[:8]
+        db.create_job(prev_id, inputs, consent=True, is_demo=True, status="complete")
+        db.update_job(
+            prev_id,
+            findings=previous_findings,
+            score=1,
+            identifier_hash=_idhash(inputs),
+            tools={},
+            status="complete",
+        )
     db.create_job(job_id, inputs, consent=True, is_demo=True, status="complete")
     evaluated = {
         "score": template.get("score"),
@@ -223,6 +263,10 @@ def persist_demo_job() -> dict[str, Any]:
     )
     job = db.get_job(job_id)
     assert job is not None
+    diff = _attach_history(job_id, inputs, findings)
+    job = db.get_job(job_id)
+    assert job is not None
+    job["diff"] = diff
     return job
 
 
@@ -324,6 +368,7 @@ async def execute_job(job_id: str, inputs: dict[str, str]) -> None:
             tools_run=planned,
             is_demo=False,
         )
+        _attach_history(job_id, inputs, findings)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Job %s failed", job_id)
         db.update_job(job_id, status="error", error=str(exc), progress=progress, tools=progress, findings=findings)
@@ -363,7 +408,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Digital Footprint Self-Audit Platform",
     description="OSINT self-audit dashboard for a cybersecurity class project.",
-    version="1.2.0",
+    version="1.3.0",
     lifespan=lifespan,
 )
 

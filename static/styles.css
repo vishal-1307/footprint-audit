@@ -326,3 +326,19 @@ table.data th {
 }
 table.data td.mono { font-family: var(--mono); font-size: 12px; }
 .empty { color: var(--muted); padding: 8px 0; }
+
+.grade-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  font-weight: 700; font-size: 15px;
+}
+.grade-A { background: var(--ok-soft); color: var(--ok); }
+.grade-B { background: var(--ok-soft); color: var(--ok); }
+.grade-C { background: var(--warn-soft); color: var(--warn); }
+.grade-D, .grade-F { background: var(--danger-soft); color: var(--danger); }
+.diff-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 720px) { .diff-col { grid-template-columns: 1fr; } }
+.diff-col h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+#pw-result.ok { color: var(--ok); }
+#pw-result.bad { color: var(--danger); }
+#pw-result.warn { color: var(--warn); }

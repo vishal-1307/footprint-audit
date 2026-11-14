@@ -31,6 +31,10 @@ def test_demo_pdf_contains_expected_labels():
     assert b"Digital Footprint" in pdf or b"Self-Audit" in pdf
     assert b"SAMPLE" in pdf
     assert computed["score"] >= 50
+    job["diff"] = {"has_previous": True, "previous_at": "2026-11-01T00:00:00Z", "new": [{"source": "xposedornot", "value": "ExampleForum2019"}], "removed": []}
+    pdf2 = report.build_pdf(job)
+    assert pdf2.startswith(b"%PDF")
+    assert len(pdf2) >= len(pdf)
 
 
 def test_ai_skipped_without_key(monkeypatch):
@@ -55,6 +59,27 @@ def test_ai_prompt_forbids_invention():
     assert "GitHub" in prompt
     # Prompt should not be written as a dossier on a third-party "target".
     assert "SELF-AUDIT" in prompt or "self-audit" in prompt.lower()
+    assert "raw secrets" in prompt.lower() or "Never quote raw secrets" in prompt
+
+
+def test_ai_prompt_strips_raw_secrets():
+    prompt = ai.build_prompt(
+        {
+            "inputs": {"email": "alex.rivera.demo@example.com"},
+            "findings": [
+                {
+                    "source": "xposedornot",
+                    "value": "ExampleForum2019 — Passwords",
+                    "status": "found",
+                    "raw": {"kind": "breach", "password": "should-not-appear", "data_classes": ["Passwords"]},
+                }
+            ],
+            "score": 25,
+            "is_demo": False,
+        }
+    )
+    assert "should-not-appear" not in prompt
+    assert "ExampleForum2019" in prompt
 
 
 def test_configured_model_default_and_override(monkeypatch):

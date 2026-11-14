@@ -7,6 +7,7 @@ device, not a scientific risk model.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 from urllib.parse import urlparse
 
@@ -288,6 +289,128 @@ def compute_score(findings: list[dict], tools: dict | None = None) -> tuple[int,
         f"{len(harvested_people)} people name(s) found in public domain sources (+3 each, cap 9).",
     )
 
+    # --- Free breach check (XposedOrNot) + optional h8mail ---
+    # Keep a single breach_confirmed rule so h8mail and XposedOrNot are not double-counted.
+    xon_breaches: list[str] = []
+    xon_classes: list[str] = []
+    for f in email_hits:
+        if _norm(f.get("source")) != "xposedornot" or not _is_found(f):
+            continue
+        raw = _norm(f.get("raw")) + " " + _norm(f.get("value"))
+        if '"kind":"summary"' in raw.replace(" ", "") or '"kind": "summary"' in raw:
+            try:
+                payload = json.loads(f.get("raw") or "{}")
+            except Exception:
+                payload = {}
+            for name in payload.get("breaches") or []:
+                if name and str(name) not in xon_breaches:
+                    xon_breaches.append(str(name))
+            for cls in payload.get("data_classes") or []:
+                if cls:
+                    xon_classes.append(str(cls))
+        elif '"kind":"breach"' in raw.replace(" ", "") or '"kind": "breach"' in raw:
+            try:
+                payload = json.loads(f.get("raw") or "{}")
+            except Exception:
+                payload = {}
+            name = payload.get("name") or (f.get("value") or "").split("—")[0].strip()
+            if name and name not in xon_breaches:
+                xon_breaches.append(name)
+            for cls in payload.get("data_classes") or []:
+                if cls:
+                    xon_classes.append(str(cls))
+
+    if (xon_breaches or confirmed) and "breach_confirmed" not in {b["rule"] for b in breakdown}:
+        add(
+            "breach_confirmed",
+            25,
+            "A confirmed breach record was returned for this email (XposedOrNot and/or HIBP/h8mail). "
+            "Change reused passwords and enable 2FA.",
+        )
+    # If h8mail already added breach_confirmed above, skip the duplicate — handled by the set check.
+    # The earlier h8mail block still fires; this block only adds it when XposedOrNot found
+    # something and h8mail did not.
+
+    if len(xon_breaches) >= 5:
+        add(
+            "breach_volume",
+            8,
+            f"{len(xon_breaches)} distinct breaches were reported (5+ raises exposure).",
+        )
+    sensitive_classes = []
+    for cls in xon_classes:
+        key = cls.strip().lower()
+        if any(s in key for s in ("password", "phone", "address", "social security", "passport", "credit card", "bank", "date of birth", "government")):
+            if cls not in sensitive_classes:
+                sensitive_classes.append(cls)
+    if sensitive_classes:
+        add(
+            "breach_sensitive_data",
+            8,
+            "Breach records list sensitive data classes: " + ", ".join(sensitive_classes[:8]) + ".",
+        )
+
+    # --- Mail / website security grades ---
+    def _grade_from(source: str) -> str | None:
+        for f in domain_hits:
+            if _norm(f.get("source")) != source:
+                continue
+            raw = f.get("raw") or ""
+            if "grade" not in _norm(raw) and "grade" not in _norm(f.get("value")):
+                continue
+            try:
+                payload = json.loads(raw) if isinstance(raw, str) and raw.startswith("{") else {}
+            except Exception:
+                payload = {}
+            letter = (payload.get("grade") or "").upper()
+            if letter:
+                return letter
+            value = _norm(f.get("value"))
+            for cand in ("A", "B", "C", "D", "F"):
+                if f"grade {cand.lower()}" in value:
+                    return cand
+        return None
+
+    mail_grade = _grade_from("mail_security")
+    if mail_grade in {"C"}:
+        add("mail_security_weak", 6, "Mail security grade is C (SPF/DMARC/DKIM need attention).")
+    elif mail_grade in {"D", "F"}:
+        add("mail_security_weak", 12, f"Mail security grade is {mail_grade} (missing or weak SPF, DMARC, or DKIM).")
+
+    web_grade = _grade_from("web_security")
+    if web_grade in {"C"}:
+        add("web_security_weak", 6, "Website security grade is C (HTTPS or headers need attention).")
+    elif web_grade in {"D", "F"}:
+        add("web_security_weak", 12, f"Website security grade is {web_grade} (HTTPS, certificate, or headers are weak).")
+
+    if any(_norm(f.get("source")) == "web_security" and "does not redirect" in _norm(f.get("value")) for f in domain_hits):
+        if "web_security_weak" not in {b["rule"] for b in breakdown}:
+            add("https_redirect_missing", 8, "The website does not redirect HTTP to HTTPS.")
+
+    open_http = [
+        f for f in domain_hits
+        if _norm(f.get("source")) == "web_security" and "without a reliable https" in _norm(f.get("value"))
+    ]
+    if open_http:
+        add(
+            "open_http_hosts",
+            min(8, 2 * len(open_http)),
+            f"{len(open_http)} live host(s) answered HTTP without a reliable HTTPS upgrade (+2 each, cap 8).",
+        )
+
+    # --- Public profile enrichment ---
+    gh = [f for f in found if _norm(f.get("source")) == "github_profile"]
+    if any("public email on github" in _norm(f.get("value")) for f in gh):
+        add("github_public_email", 6, "The GitHub profile publishes a public email address.")
+    if any(_norm(f.get("value")).startswith("github location:") or _norm(f.get("value")).startswith("github company:") or _norm(f.get("value")).startswith("github blog:") for f in gh):
+        add("github_public_pii", 3, "The GitHub profile publishes location, company, or a blog URL that can identify you.")
+
+    grav = [f for f in found if _norm(f.get("source")) == "gravatar"]
+    if any("gravatar profile:" in _norm(f.get("value")) for f in grav):
+        add("gravatar_profile", 4, "A public Gravatar profile is linked to this email.")
+    if any("gravatar location:" in _norm(f.get("value")) for f in grav):
+        add("gravatar_pii", 4, "The Gravatar profile publishes a location.")
+
     score = max(0, min(100, total))
     return score, breakdown
 
@@ -338,19 +461,19 @@ def remediation_items(findings: list[dict], score: int, breakdown: list[dict], i
             "Use email aliases for new sign-ups",
             "Plus-addressing (you+site@gmail.com) or a secondary alias limits how easily one leaked email maps to every service you use.",
         )
-    if inputs.get("email"):
-        add(
-            "medium",
-            "Check Have I Been Pwned manually if no API key was configured",
-            "Visit https://haveibeenpwned.com/ and search your own email. The free public API is not used here without a paid HIBP key.",
-        )
-    if "breach_confirmed" in rules:
+    if "breach_confirmed" in rules or "breach_volume" in rules:
         add(
             "critical",
             "Treat this email as breached",
-            "Change the password on every account that shared it, do not reuse that password, and turn on two-factor authentication.",
+            "Change the password on every account that shared it, do not reuse that password, and turn on two-factor authentication. Review the breach names and data classes in this report.",
         )
-    if holehe or username_hits:
+    elif inputs.get("email"):
+        add(
+            "medium",
+            "Re-check this address periodically",
+            "No breach was reported this time by the free XposedOrNot lookup. You can also search Have I Been Pwned in a browser. Neither source is complete.",
+        )
+    if holehe or username_hits or "breach_confirmed" in rules:
         add(
             "high",
             "Turn on two-factor authentication",
@@ -373,6 +496,36 @@ def remediation_items(findings: list[dict], score: int, breakdown: list[dict], i
             "medium",
             "Reduce emails and staff names on public pages",
             "Addresses and names published on websites, certificates, or directories are routinely harvested. Use role inboxes and contact forms where you can.",
+        )
+    if "mail_security_weak" in rules:
+        add(
+            "high",
+            "Publish SPF, DMARC, and DKIM for this domain",
+            "Add a v=spf1 TXT record, a _dmarc record with p=quarantine or p=reject when ready, and a DKIM key from your mail provider. This cuts down on spoofed mail that uses your domain.",
+        )
+    if "web_security_weak" in rules or "https_redirect_missing" in rules:
+        add(
+            "high",
+            "Tighten website HTTPS and security headers",
+            "Redirect HTTP to HTTPS, renew the certificate before it expires, and add HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy.",
+        )
+    if "open_http_hosts" in rules:
+        add(
+            "medium",
+            "Turn off leftover HTTP-only hosts",
+            "A public subdomain answered on HTTP without a reliable HTTPS upgrade. Redirect or retire hosts you no longer need.",
+        )
+    if "github_public_email" in rules or "github_public_pii" in rules:
+        add(
+            "medium",
+            "Limit what your GitHub profile publishes",
+            "Clear the public email in GitHub settings, and review location, company, and blog fields if you do not want them correlated with this handle.",
+        )
+    if "gravatar_profile" in rules or "gravatar_pii" in rules:
+        add(
+            "medium",
+            "Review your Gravatar profile",
+            "A public Gravatar profile is tied to this email and can show a name, photo, or location on any site that uses Gravatar. Trim or delete what you do not want public.",
         )
     add(
         "medium",
@@ -455,6 +608,20 @@ def confidence_notes(findings: list[dict], inputs: dict | None = None, tools: di
             "or tools that failed or were blocked. Check the per-tool status before drawing conclusions."
         )
 
+    if any(_norm(f.get("source")) == "xposedornot" for f in findings):
+        notes.append(
+            "The free XposedOrNot lookup lists public breach names and data classes. It is not a complete catalogue, "
+            "does not include passwords from this app, and may lag or miss incidents. A rate limit is not proof that the address is clean."
+        )
+    if any(_norm(f.get("source")) in {"mail_security", "web_security"} for f in findings):
+        notes.append(
+            "Mail and website grades are based on public DNS and HTTP responses at scan time. A good grade is not a penetration test, "
+            "and a missing DKIM selector only means it was not one of the common names this tool checks."
+        )
+    if any(_norm(f.get("source")) in {"github_profile", "gravatar"} for f in findings):
+        notes.append(
+            "GitHub and Gravatar data comes from public, unauthenticated profiles. A missing GitHub user only means this exact handle is not a public account."
+        )
     notes.append(
         "Instagram, Facebook, and other login-walled platforms cannot be scraped reliably without an account. "
         "This platform only uses public, unauthenticated sources and will not attempt to bypass controls."

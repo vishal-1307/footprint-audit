@@ -83,6 +83,11 @@ TOOL_TIMEOUTS = {
     "dnsrecon": 150,
     "subfinder": 150,
     "theharvester": 180,
+    "xposedornot": 20,
+    "mail_security": 25,
+    "web_security": 35,
+    "github_profile": 15,
+    "gravatar": 15,
 }
 
 # kind: binary = PATH tool; python = always-on library/API; whois = CLI or python-whois.
@@ -109,6 +114,11 @@ TOOL_SPEC = {
         "timeout": 180,
         "kind": "binary",
     },
+    "xposedornot": {"binaries": [], "group": "email", "timeout": 20, "kind": "python", "module": "httpx"},
+    "mail_security": {"binaries": [], "group": "domain", "timeout": 25, "kind": "python", "module": "dns.resolver"},
+    "web_security": {"binaries": [], "group": "domain", "timeout": 35, "kind": "python", "module": "httpx"},
+    "github_profile": {"binaries": [], "group": "username", "timeout": 15, "kind": "python", "module": "httpx"},
+    "gravatar": {"binaries": [], "group": "email", "timeout": 15, "kind": "python", "module": "httpx"},
 }
 
 HEAVY_TOOLS = {"maigret", "sherlock", "dnsrecon", "subfinder", "theharvester"}
@@ -1744,11 +1754,11 @@ def select_tools(inputs: dict[str, str], available: dict[str, dict[str, Any]] | 
     available = available if available is not None else detect_tools()
     chosen: list[str] = []
     if inputs.get("username"):
-        chosen.extend(["maigret", "sherlock"])
+        chosen.extend(["maigret", "sherlock", "github_profile"])
     if inputs.get("email"):
-        chosen.extend(["holehe", "h8mail"])
+        chosen.extend(["holehe", "h8mail", "xposedornot", "gravatar"])
     if inputs.get("domain"):
-        chosen.extend(["whois", "dns_lookup", "crtsh", "dnsrecon", "subfinder", "theharvester"])
+        chosen.extend(["whois", "dns_lookup", "crtsh", "dnsrecon", "subfinder", "theharvester", "mail_security", "web_security"])
     return chosen
 
 
@@ -1787,6 +1797,21 @@ async def run_tool(
             result = await run_subfinder(inputs["domain"], timeout=timeout, binary=binary)
         elif name == "theharvester":
             result = await run_theharvester(inputs["domain"], timeout=timeout, binary=binary)
+        elif name == "xposedornot":
+            from .enrichment import run_xposedornot
+            result = await run_xposedornot(inputs["email"], timeout=timeout)
+        elif name == "mail_security":
+            from .enrichment import run_mail_security
+            result = await run_mail_security(inputs["domain"], timeout=timeout)
+        elif name == "web_security":
+            from .enrichment import run_web_security
+            result = await run_web_security(inputs["domain"], timeout=timeout)
+        elif name == "github_profile":
+            from .enrichment import run_github_profile
+            result = await run_github_profile(inputs["username"], timeout=timeout)
+        elif name == "gravatar":
+            from .enrichment import run_gravatar
+            result = await run_gravatar(inputs["email"], timeout=timeout)
         else:
             result = _error(name, f"unknown tool {name}")
     except asyncio.TimeoutError:
@@ -1883,6 +1908,47 @@ async def run_fake_tool(name: str, inputs: dict[str, str], **_: Any) -> ToolResu
             message="1 hostname(s) from certificate transparency (fake adapter)",
             findings=[
                 Finding("crtsh", "domain", f"www.{domain}", f"https://www.{domain}", "found", "high", "source=crt.sh"),
+            ],
+        ),
+        "xposedornot": ToolResult(
+            tool="xposedornot",
+            status="found",
+            message="1 breach(es) reported (fake adapter)",
+            findings=[
+                Finding("xposedornot", "email", "1 breach(es) reported — ExampleBreach2019", "https://xposedornot.com/", "found", "high", '{"kind":"summary","count":1,"breaches":["ExampleBreach2019"],"data_classes":["Passwords"]}'),
+                Finding("xposedornot", "email", "ExampleBreach2019 (2019) — Passwords", "", "found", "high", '{"kind":"breach","name":"ExampleBreach2019","year":"2019","data_classes":["Passwords"]}'),
+            ],
+        ),
+        "mail_security": ToolResult(
+            tool="mail_security",
+            status="found",
+            message="Mail grade B (fake adapter)",
+            findings=[
+                Finding("mail_security", "domain", "Mail security grade B", "", "found", "high", '{"kind":"grade","grade":"B","score":80,"spf":"v=spf1 -all","dmarc":"v=DMARC1; p=none","dkim":[],"mx":["mail.example.com"],"issues":["DMARC policy is p=none (monitor only). Move to p=quarantine or p=reject when ready.","No DKIM key found for common selectors. Add a DKIM TXT record for your mail provider."]}'),
+            ],
+        ),
+        "web_security": ToolResult(
+            tool="web_security",
+            status="found",
+            message="Website grade B (fake adapter)",
+            findings=[
+                Finding("web_security", "domain", "Website security grade B", f"https://{domain}", "found", "high", '{"kind":"grade","grade":"B","score":82,"https_ok":true,"redirect_to_https":true,"missing_headers":["permissions-policy"],"present_headers":["strict-transport-security","content-security-policy","x-frame-options","x-content-type-options","referrer-policy"],"open_http_hosts":[],"issues":["Missing headers: permissions-policy."]}'),
+            ],
+        ),
+        "github_profile": ToolResult(
+            tool="github_profile",
+            status="not_found",
+            message="No public GitHub user with this handle (fake adapter)",
+            findings=[
+                Finding("github_profile", "username", "No public GitHub user with this handle", f"https://github.com/{username}", "not_found", "high", '{"kind":"missing"}'),
+            ],
+        ),
+        "gravatar": ToolResult(
+            tool="gravatar",
+            status="not_found",
+            message="No public Gravatar profile (fake adapter)",
+            findings=[
+                Finding("gravatar", "email", "No public Gravatar profile for this email", "https://gravatar.com/", "not_found", "medium", '{"kind":"missing"}'),
             ],
         ),
     }
