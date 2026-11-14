@@ -1,0 +1,11 @@
+{
+  "asns": [],
+  "emails": ["admin@example.com", "hello@example.com"],
+  "hosts": ["www.example.com", "mail.example.com:93.184.216.34"],
+  "interesting_urls": ["https://example.com/contact"],
+  "ips": ["93.184.216.34"],
+  "people": ["Jane Example"],
+  "shodan": [],
+  "twitter_people": [],
+  "linkedin_people": []
+}

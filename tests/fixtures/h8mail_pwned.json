@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "alex.rivera.demo@example.com": {
+      "pwn_num": 2,
+      "data": [
+        ["alex.rivera.demo@example.com", "ExampleBreach2019", "DO-NOT-STORE-PASSWORD"],
+        ["alex.rivera.demo@example.com", "DemoCorpLeak"]
+      ]
+    }
+  }
+}

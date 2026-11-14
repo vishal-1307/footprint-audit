@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log in — Digital Footprint Self-Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1016; --bg-elev: #131b24; --line: #2a3848;
+      --text: #e6edf3; --muted: #8b9aab; --mint: #3ee0b4; --coral: #ff6b5a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", sans-serif; }
+    body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .card {
+      width: 100%; max-width: 420px; background: var(--bg-elev);
+      border: 1px solid var(--line); border-radius: 16px; padding: 28px 26px;
+    }
+    .mark {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(62,224,180,.14); border: 1px solid rgba(62,224,180,.35);
+      display: grid; place-items: center; color: var(--mint); font-weight: 700;
+      font-family: "IBM Plex Mono", monospace; margin-bottom: 14px;
+    }
+    h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: -0.03em; }
+    p { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+    label { display: block; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    input[type=password] {
+      width: 100%; background: #0d141c; border: 1px solid var(--line); color: var(--text);
+      border-radius: 10px; padding: 11px 12px; font: inherit; margin-bottom: 14px;
+    }
+    input:focus { outline: 2px solid rgba(62,224,180,.35); border-color: var(--mint); }
+    button {
+      width: 100%; appearance: none; border: 0; cursor: pointer;
+      background: var(--mint); color: #06241b; font: 600 14px/1 "IBM Plex Sans", sans-serif;
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .error {
+      background: rgba(255,107,90,.1); border: 1px solid rgba(255,107,90,.35);
+      color: #ffc4bc; padding: 10px 12px; border-radius: 10px; margin-bottom: 14px; font-size: 14px;
+    }
+    .hint { margin-top: 16px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="mark">FA</div>
+    <h1>Digital Footprint Self-Audit</h1>
+    <p>Enter the dashboard password to continue. This is a self-audit tool — public sources only.</p>
+    <!--ERROR-->
+    <form method="post" action="/login">
+      <input type="hidden" name="next" value="<!--NEXT-->" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required autofocus autocomplete="current-password" />
+      <button type="submit">Log in</button>
+    </form>
+    <p class="hint">Set <code>APP_PASSWORD</code> and <code>SECRET_KEY</code> in the host environment (Render dashboard or a local <code>.env</code> file). Sessions expire after 12 hours.</p>
+  </div>
+</body>
+</html>

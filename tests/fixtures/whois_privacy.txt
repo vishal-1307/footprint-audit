@@ -1,0 +1,5 @@
+Domain Name: example.com
+Registrar: RESERVED-Internet Assigned Numbers Authority
+Registrant Organization: REDACTED FOR PRIVACY
+Registrant Email: 0000@redactedforprivacy.com
+Name Server: a.iana-servers.net

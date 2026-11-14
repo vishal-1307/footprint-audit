@@ -1,0 +1,3 @@
+{"host":"www.example.com","source":"crtsh"}
+{"host":"mail.example.com","source":"hackertarget"}
+{"host":"www.example.com","source":"duplicate"}

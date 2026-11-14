@@ -1,0 +1,6 @@
+[
+  {"name": "twitter", "rateLimit": false, "exists": true, "emailrecovery": "a****@gmail.com", "phoneNumber": null, "others": null},
+  {"name": "instagram", "rateLimit": true, "exists": false, "emailrecovery": null, "phoneNumber": null, "others": null},
+  {"name": "facebook", "rateLimit": false, "exists": false, "emailrecovery": null, "phoneNumber": null, "others": null},
+  {"name": "github", "domain": "github.com", "rateLimit": false, "exists": true, "emailrecovery": null, "phoneNumber": null, "others": null}
+]

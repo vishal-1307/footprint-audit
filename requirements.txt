@@ -1,0 +1,12 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32
+httpx>=0.27
+fpdf2>=2.8
+python-multipart>=0.0.12
+itsdangerous>=2.2
+python-whois>=0.9
+dnspython>=2.6
+pytest>=8.0
+maigret>=0.4
+sherlock-project>=0.15
+holehe>=1.6

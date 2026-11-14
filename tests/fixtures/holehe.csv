@@ -1,0 +1,5 @@
+name,domain,rateLimit,exists,emailrecovery,phoneNumber,others
+twitter,twitter.com,False,True,a****@gmail.com,,
+instagram,instagram.com,True,False,,,
+facebook,facebook.com,False,False,,,
+github,github.com,False,True,,,

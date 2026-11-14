@@ -1,0 +1,20 @@
+{
+  "objectClassName": "domain",
+  "ldhName": "EXAMPLE.COM",
+  "entities": [
+    {
+      "roles": ["registrar"],
+      "vcardArray": ["vcard", [
+        ["fn", {}, "text", "RESERVED-Internet Assigned Numbers Authority"]
+      ]]
+    }
+  ],
+  "events": [
+    {"eventAction": "registration", "eventDate": "1995-08-14T04:00:00Z"},
+    {"eventAction": "expiration", "eventDate": "2027-08-13T04:00:00Z"}
+  ],
+  "nameservers": [
+    {"ldhName": "A.IANA-SERVERS.NET"},
+    {"ldhName": "B.IANA-SERVERS.NET"}
+  ]
+}

@@ -1,0 +1,5 @@
+[32m[+] Twitter[0m
+[+] GitHub
+[-] Facebook
+[x] Instagram rate limit
+Email used on Adobe

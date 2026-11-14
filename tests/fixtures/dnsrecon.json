@@ -1,0 +1,5 @@
+[
+  {"type": "A", "name": "example.com", "address": "93.184.216.34"},
+  {"type": "MX", "name": "example.com", "exchange": "mail.example.com", "address": "93.184.216.34"},
+  {"type": "NS", "name": "example.com", "address": "a.iana-servers.net"}
+]

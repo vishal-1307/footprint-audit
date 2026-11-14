@@ -1,0 +1,6 @@
+username,name,url_main,url_user,exists,http_status,response_time_s
+alexrivera_demo,GitHub,https://github.com/,https://github.com/alexrivera_demo,Claimed,200,0.42
+alexrivera_demo,Reddit,https://reddit.com/,https://www.reddit.com/user/alexrivera_demo,Claimed,200,0.51
+alexrivera_demo,Instagram,https://instagram.com/,https://www.instagram.com/alexrivera_demo,WAF,403,0.20
+alexrivera_demo,Twitter,https://twitter.com/,https://twitter.com/alexrivera_demo,Available,404,0.33
+alexrivera_demo,SomeSite,https://somesite.example/,https://somesite.example/alexrivera_demo,Illegal,0,0.01

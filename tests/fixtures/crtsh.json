@@ -1,0 +1,6 @@
+[
+  {"id": 1, "name_value": "www.example.com\nexample.com", "common_name": "www.example.com", "issuer_name": "Demo CA"},
+  {"id": 2, "name_value": "*.mail.example.com", "common_name": "mail.example.com", "issuer_name": "Demo CA"},
+  {"id": 3, "name_value": "unrelated.example.net", "common_name": "unrelated.example.net", "issuer_name": "Demo CA"},
+  {"id": 4, "name_value": "www.example.com", "common_name": "www.example.com", "issuer_name": "Other CA"}
+]

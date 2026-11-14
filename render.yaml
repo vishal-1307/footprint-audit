@@ -1,0 +1,31 @@
+# Render Blueprint — https://render.com/docs/infrastructure-as-code
+# After you push this repo to GitHub: Dashboard → New → Blueprint, pick the repo,
+# then fill in APP_PASSWORD (and optionally GEMINI_API_KEY). SECRET_KEY is generated.
+services:
+  - type: web
+    name: footprint-audit
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: APP_PASSWORD
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite
+      - key: DATABASE_PATH
+        value: /var/data/footprint.db
+      - key: MAIGRET_TOP_SITES
+        value: "200"
+      - key: MAIGRET_MAX_CONNECTIONS
+        value: "20"
+      - key: SCAN_CONCURRENCY
+        value: "2"
+      - key: SECURE_COOKIES
+        value: "1"
+      - key: HOST
+        value: "0.0.0.0"

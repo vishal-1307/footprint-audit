@@ -1,0 +1,5 @@
+{
+  "targets": [
+    {"target": "clean@example.com", "pwn_num": 0, "data": []}
+  ]
+}

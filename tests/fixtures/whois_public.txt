@@ -1,0 +1,9 @@
+Domain Name: rivera-demo.example
+Registrar: Example Registrar, Inc.
+Creation Date: 2020-04-01T00:00:00Z
+Registry Expiry Date: 2027-04-01T00:00:00Z
+Registrant Organization: Alex Rivera Labs
+Registrant Name: Alex Rivera
+Registrant Email: alex.rivera.demo@example.com
+Name Server: ns1.rivera-demo.example
+Name Server: ns2.rivera-demo.example
